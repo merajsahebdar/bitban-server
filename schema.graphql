@@ -1,0 +1,122 @@
+# v0.0.*
+
+scalar DateTime
+
+# =====
+# Guard
+# -----
+
+directive @guard(permission: PermissionPolicy!) on FIELD_DEFINITION
+
+enum PermissionSubLookup {
+  HEADER
+  COOKIE
+}
+
+input PermissionDefinition {
+  obj: String!
+  act: String!
+}
+
+input PermissionPolicy {
+  subLookup: PermissionSubLookup!
+  def: PermissionDefinition
+}
+
+# ====
+# User
+# ----
+
+type User {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  removedAt: DateTime
+  isActive: Boolean!
+  isBanned: Boolean!
+
+  profile: UserProfile! @guard(permission: { subLookup: "HEADER", def: { obj: "/users/{{.parent.ID}}/profiles/{{.filter.ID}}", act: "read" } })
+}
+
+# ============
+# User Profile
+# ------------
+
+type UserProfile {
+  id: ID!
+  name: String!
+}
+
+# ====
+# Auth
+# ----
+
+type Auth {
+  accessToken: String!
+  user: User!
+}
+
+# =============
+# Sign Up Input
+# -------------
+
+input SignUpInput {
+  password: String!
+  passwordConfirm: String!
+
+  profile: SignUpProfileInput!
+  primaryEmail: SignUpPrimaryEmailInput!
+}
+
+input SignUpPrimaryEmailInput {
+  address: String!
+}
+
+input SignUpProfileInput {
+  name: String!
+}
+
+# =============
+# Sign In Input
+# -------------
+
+input SignInInput {
+  identifier: String!
+  password: String!
+}
+
+# =====
+# Query
+# -----
+
+type Query {
+  """
+  Returns an existing user using its identifier.
+  """
+  user(filter: UserFilter!): User @guard(permission: { subLookup: "HEADER", def: { obj: "/users/{{.filter.ID}}", act: "read" } })
+}
+
+input UserFilter {
+  id: ID!
+}
+
+# ========
+# Mutation
+# --------
+
+type Mutation {
+  """
+  Creates a new user account using the provided credentials and profile.
+  """
+  signUp(input: SignUpInput!): Auth!
+
+  """
+  Authenticates the user using the provided credentials.
+  """
+  signIn(input: SignInInput!): Auth!
+
+  """
+  Generate a new access token using the current refresh token stored in cookies.
+  """
+  refreshToken: String! @guard(permission: { subLookup: "COOKIE" })
+}

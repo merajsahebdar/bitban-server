@@ -1,0 +1,48 @@
+# Where are all the schema files located? globs are supported eg  src/**/*.graphqls
+schema:
+  - schema.graphql
+
+# Where should the generated server code go?
+exec:
+  filename: internal/schema/server.go
+  package: schema
+
+# gqlgen will search for any type names in the schema in these go packages
+# if they match it will use them, otherwise it will generate them.
+autobind:
+  - "go.giteam.ir/giteam/internal/dto"
+
+# This section declares type mapping between the GraphQL and go type systems
+#
+# The first line in each type will be used as defaults for resolver arguments and
+# modelgen, the others will be allowed when binding to fields. Configure them to
+# your liking
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.ID
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/99designs/gqlgen/graphql.Int32
+  String:
+    model:
+      - github.com/99designs/gqlgen/graphql.String
+      - github.com/nrfta/go-graphql-scalars.NullString
+  Int:
+    model:
+      - github.com/99designs/gqlgen/graphql.Int
+      - github.com/99designs/gqlgen/graphql.Int32
+      - github.com/99designs/gqlgen/graphql.Int64
+      - github.com/nrfta/go-graphql-scalars.NullInt
+  Float:
+    model:
+      - github.com/99designs/gqlgen/graphql.Float
+      - github.com/nrfta/go-graphql-scalars.NullFloat
+  Boolean:
+    model:
+      - github.com/99designs/gqlgen/graphql.Boolean
+      - github.com/nrfta/go-graphql-scalars.NullBoolean
+  DateTime:
+    model:
+      - github.com/nrfta/go-graphql-scalars.DateTime
+      - github.com/nrfta/go-graphql-scalars.NullDateTime

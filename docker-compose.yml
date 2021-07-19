@@ -1,0 +1,47 @@
+# vim: set ts=2 sw=2 ft=yaml et:
+
+version: "3.8"
+
+services:
+  # PostgreSQL
+  postgres:
+    container_name: giteam-postgres
+    image: postgres:13
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - 5432:5432
+    volumes:
+      - type: volume
+        source: postgres
+        target: /var/lib/postgresql/data/pgdata
+  # AMQP
+  amqp:
+    container_name: giteam-amqp
+    image: rabbitmq:3.8
+    ports:
+      - 5672:5672
+    volumes:
+      - type: volume
+        source: amqp
+        target: /var/lib/rabbitmq
+  # Cache
+  cache:
+    container_name: giteam-cache
+    image: redis:5
+    ports:
+      - 6379:6379
+
+networks:
+  default:
+    name: giteam
+
+volumes:
+  # PostgreSQL Data
+  postgres:
+    name: giteam-postgres
+  # AMQP Data
+  amqp:
+    name: giteam-amqp
