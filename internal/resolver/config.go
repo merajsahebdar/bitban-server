@@ -12,6 +12,7 @@ var ConfigOpt = fx.Provide(newConfig)
 // newConfig
 func newConfig() schema.Config {
 	return schema.Config{
+		Resolvers: &rootResolver{},
 		Directives: schema.DirectiveRoot{
 			Guard: (&Guard{
 				enforcer: common.GetEnforcerInstance(),
