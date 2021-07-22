@@ -34,8 +34,12 @@ type echoContext struct {
 func ContextWrapper() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ec echo.Context) error {
-			nextCtx := context.WithValue(ec.Request().Context(), echoContextKey{}, ec)
+			var nextCtx context.Context
+			nextCtx = context.WithValue(ec.Request().Context(), echoContextKey{}, ec)
+			nextCtx = ContextWithDB(nextCtx, GetDbInstance())
+
 			ec.SetRequest(ec.Request().WithContext(nextCtx))
+
 			return next(echoContext{
 				Context: ec,
 				ctx:     nextCtx,

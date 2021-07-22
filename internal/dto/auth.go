@@ -8,14 +8,14 @@ type Auth struct {
 
 // SignInInput
 type SignInInput struct {
-	Password   string `json:"password"`
-	Identifier string `json:"identifier"`
+	Password   string `json:"password" validate:"required"`
+	Identifier string `json:"identifier" validate:"required"`
 }
 
 // SignUpInput
 type SignUpInput struct {
-	Password        string `json:"password"`
-	PasswordConfirm string `json:"passwordConfirm"`
+	Password        string `json:"password" validate:"required,min=8"`
+	PasswordConfirm string `json:"passwordConfirm" validate:"required,eqfield=Password"`
 
 	Profile      SignUpProfileInput      `json:"profile"`
 	PrimaryEmail SignUpPrimaryEmailInput `json:"primaryEmail"`
@@ -23,10 +23,10 @@ type SignUpInput struct {
 
 // SignUpPrimaryEmailInput
 type SignUpPrimaryEmailInput struct {
-	Address string `json:"address"`
+	Address string `json:"address" validate:"required,email,notexistsin=user_emails address"`
 }
 
 // SignUpProfileInput
 type SignUpProfileInput struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
 }

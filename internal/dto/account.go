@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/volatiletech/null/v8"
@@ -22,7 +21,7 @@ type User struct {
 func UserFrom(user *orm.User) *User {
 	if user != nil {
 		return &User{
-			ID:        strconv.FormatInt(user.ID, 10),
+			ID:        ToGlobalID("User", user.ID),
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			RemovedAt: user.RemovedAt,
@@ -44,7 +43,7 @@ type UserProfile struct {
 func UserProfileFrom(profile *orm.UserProfile) *UserProfile {
 	if profile != nil {
 		return &UserProfile{
-			ID:   strconv.FormatInt(profile.ID, 10),
+			ID:   ToGlobalID("UserProfile", profile.ID),
 			Name: profile.Name,
 		}
 	}

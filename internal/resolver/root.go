@@ -1,10 +1,15 @@
 package resolver
 
-import "go.giteam.ir/giteam/internal/schema"
+import (
+	"github.com/go-playground/validator/v10"
+	"go.giteam.ir/giteam/internal/schema"
+)
 
 type (
 	// rootResolver
-	rootResolver struct{}
+	rootResolver struct {
+		validate *validator.Validate
+	}
 
 	// queryResolver
 	queryResolver struct {

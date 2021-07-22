@@ -3,7 +3,9 @@ package resolver
 import (
 	"context"
 
+	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/dto"
+	"go.giteam.ir/giteam/internal/facade"
 )
 
 // User Returns an existing user using its identifier.
@@ -12,13 +14,42 @@ func (*queryResolver) User(context.Context, dto.UserFilter) (*dto.User, error) {
 }
 
 // SignIn
-func (*mutationResolver) SignIn(context.Context, dto.SignInInput) (*dto.Auth, error) {
-	panic("not implemented")
+func (r *mutationResolver) SignIn(ctx context.Context, input dto.SignInInput) (*dto.Auth, error) {
+	if err := r.validate.Struct(input); err != nil {
+		return nil, UserInputErrorFrom(
+			common.UserInputErrorFrom(err),
+		)
+	}
+
+	if account, err := facade.GetAccountByPassword(
+		ctx,
+		input,
+	); common.IsNonUserInputError(err) {
+		panic(err)
+	} else if common.IsUserInputError(err) {
+		return nil, UserInputErrorFrom(err)
+	} else {
+		return &dto.Auth{
+			User: dto.UserFrom(account.GetUser()),
+		}, nil
+	}
 }
 
 // SignUp
-func (*mutationResolver) SignUp(context.Context, dto.SignUpInput) (*dto.Auth, error) {
-	panic("not implemented")
+func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*dto.Auth, error) {
+	if err := r.validate.Struct(input); err != nil {
+		return nil, UserInputErrorFrom(
+			common.UserInputErrorFrom(err),
+		)
+	}
+
+	if account, err := facade.CreateAccount(ctx, input); err != nil {
+		panic(err)
+	} else {
+		return &dto.Auth{
+			User: dto.UserFrom(account.GetUser()),
+		}, nil
+	}
 }
 
 // RefreshToken
