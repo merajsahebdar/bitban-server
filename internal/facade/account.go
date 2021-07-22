@@ -3,7 +3,10 @@ package facade
 import (
 	"context"
 	"database/sql"
+	"strconv"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -49,6 +52,23 @@ var (
 // GetUser
 func (f *Account) GetUser() *orm.User {
 	return f.user
+}
+
+// CreateAccessToken
+func (f *Account) CreateAccessToken() (accessToken string, err error) {
+	comp := common.GetJwtInstance()
+
+	currTime := time.Now().In(time.UTC)
+	claims := &jwt.StandardClaims{
+		Subject:  strconv.FormatInt(f.user.ID, 10),
+		IssuedAt: currTime.Unix(),
+		ExpiresAt: currTime.Add(
+			time.Duration(common.Cog.Security.AccessTokenExpiresAt) * time.Minute,
+		).Unix(),
+	}
+
+	accessToken, err = comp.SignToken(claims)
+	return accessToken, err
 }
 
 // GetAccountByPassword

@@ -29,8 +29,14 @@ func (r *mutationResolver) SignIn(ctx context.Context, input dto.SignInInput) (*
 	} else if common.IsUserInputError(err) {
 		return nil, UserInputErrorFrom(err)
 	} else {
+		var accessToken string
+		if accessToken, err = account.CreateAccessToken(); err != nil {
+			panic(err)
+		}
+
 		return &dto.Auth{
-			User: dto.UserFrom(account.GetUser()),
+			AccessToken: accessToken,
+			User:        dto.UserFrom(account.GetUser()),
 		}, nil
 	}
 }
@@ -46,8 +52,14 @@ func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*
 	if account, err := facade.CreateAccount(ctx, input); err != nil {
 		panic(err)
 	} else {
+		var accessToken string
+		if accessToken, err = account.CreateAccessToken(); err != nil {
+			panic(err)
+		}
+
 		return &dto.Auth{
-			User: dto.UserFrom(account.GetUser()),
+			AccessToken: accessToken,
+			User:        dto.UserFrom(account.GetUser()),
 		}, nil
 	}
 }
