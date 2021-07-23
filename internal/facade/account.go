@@ -139,6 +139,7 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 	}
 
 	return &Account{
+		ctx:         ctx,
 		user:        &binder.User,
 		userEmail:   &binder.UserEmail,
 		userProfile: &binder.UserProfile,
