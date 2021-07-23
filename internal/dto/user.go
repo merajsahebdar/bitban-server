@@ -42,26 +42,3 @@ func UserFrom(user *orm.User) *User {
 
 	return nil
 }
-
-// UserProfile
-type UserProfile struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-// UserProfileFrom
-func UserProfileFrom(profile *orm.UserProfile) *UserProfile {
-	if profile != nil {
-		return &UserProfile{
-			ID:   ToNodeIdentifier(UserProfileNodeType, profile.ID),
-			Name: profile.Name,
-		}
-	}
-
-	return nil
-}
-
-// UserFilter
-type UserFilter struct {
-	ID string `json:"id" param:"id"`
-}

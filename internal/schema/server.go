@@ -372,10 +372,6 @@ type Query {
   node(id: ID!): Node
 }
 
-input UserFilter {
-  id: ID!
-}
-
 # ========
 # Mutation
 # --------
@@ -2303,26 +2299,6 @@ func (ec *executionContext) unmarshalInputSignUpProfileInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj interface{}) (dto.UserFilter, error) {
-	var it dto.UserFilter
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "id":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

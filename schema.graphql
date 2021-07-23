@@ -80,10 +80,6 @@ type Query {
   node(id: ID!): Node
 }
 
-input UserFilter {
-  id: ID!
-}
-
 # ========
 # Mutation
 # --------
