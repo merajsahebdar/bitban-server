@@ -64,9 +64,21 @@ func UserInputErrorFrom(err error) UserInputError {
 }
 
 var (
+	ErrUnauthenticated  = errors.New("you need to authenticate to be able to perform this operation")
+	ErrForbidden        = errors.New("you don't have enough permissions to perform this operation")
 	ErrResourceNotFound = sql.ErrNoRows
 	ErrUserInput        = errors.New("the provided input is not correct")
 )
+
+// IsForbiddenError
+func IsForbiddenError(err error) bool {
+	return err == ErrForbidden
+}
+
+// IsUnauthenticatedError
+func IsUnauthenticatedError(err error) bool {
+	return err == ErrUnauthenticated
+}
 
 // IsResourceNotFoundError
 func IsResourceNotFoundError(err error) bool {

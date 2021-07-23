@@ -43,8 +43,8 @@ func newInternalServerErrorExtensions() ErrorExtensions {
 	}
 }
 
-// NotFoundError
-func NotFoundError(err error) *gqlerror.Error {
+// NotFoundErrorFrom
+func NotFoundErrorFrom(err error) *gqlerror.Error {
 	return &gqlerror.Error{
 		Message:    "no such resource found",
 		Extensions: newNotFoundErrorExtensions(),

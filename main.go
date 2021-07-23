@@ -7,6 +7,7 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 	"go.giteam.ir/giteam/api"
 	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/controller"
 	"go.giteam.ir/giteam/internal/resolver"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -69,6 +70,7 @@ func (cmd *RunCmd) Run() error {
 	opts := []fx.Option{
 		// Queues
 		// Controllers
+		controller.AccountOpt,
 		// Resolvers
 		resolver.ConfigOpt,
 		// APIs

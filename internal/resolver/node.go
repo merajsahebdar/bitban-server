@@ -5,29 +5,34 @@ import (
 
 	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/dto"
-	"go.giteam.ir/giteam/internal/facade"
 )
 
 // Node
-func (*queryResolver) Node(ctx context.Context, nIdentifier string) (dto.Node, error) {
-	var err error
+func (r *queryResolver) Node(ctx context.Context, nIdentifier string) (node dto.Node, err error) {
 	var id int64
 	var nType dto.NodeType
 
 	if nType, id, err = dto.FromNodeIdentifier(nIdentifier); err != nil {
-		return nil, NotFoundError(nil)
+		return nil, NotFoundErrorFrom(err)
 	}
 
 	switch nType {
 	case dto.UserNodeType:
-		if account, err := facade.GetAccountByUserID(ctx, id); common.IsResourceNotFoundError(err) {
-			return nil, nil
-		} else {
-			return dto.UserFrom(
-				account.GetUser(),
-			), nil
-		}
+		node, err = r.accountController.GetUser(ctx, id)
 	}
 
-	panic(err)
+	if err == nil {
+		return node, nil
+	}
+
+	switch {
+	case common.IsUnauthenticatedError(err):
+		return nil, AuthenticationErrorFrom(err)
+	case common.IsForbiddenError(err):
+		return nil, ForbiddenErrorFrom(err)
+	case common.IsResourceNotFoundError(err):
+		return nil, NotFoundErrorFrom(err)
+	default:
+		panic(err)
+	}
 }

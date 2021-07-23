@@ -2,6 +2,7 @@ package resolver
 
 import (
 	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/controller"
 	"go.giteam.ir/giteam/internal/schema"
 	"go.uber.org/fx"
 )
@@ -10,10 +11,11 @@ import (
 var ConfigOpt = fx.Provide(newConfig)
 
 // newConfig
-func newConfig() schema.Config {
+func newConfig(accountController *controller.Account) schema.Config {
 	return schema.Config{
 		Resolvers: &rootResolver{
-			validate: common.GetValidateInstance(),
+			validate:          common.GetValidateInstance(),
+			accountController: accountController,
 		},
 	}
 }

@@ -52,6 +52,23 @@ func (f *Account) GetUser() *orm.User {
 	return f.user
 }
 
+// CheckPermission
+//
+// Errors:
+//   - common.ErrForbidden if the authorized user does not have access to the resource
+func (f *Account) CheckPermission(obj string, act string) error {
+	if ok, err := common.GetEnforcerInstance().Enforce(
+		fmt.Sprintf("/users/%d", f.user.ID),
+		common.DefaultUserDomain,
+		obj,
+		act,
+	); err != nil || !ok {
+		return common.ErrForbidden
+	}
+
+	return nil
+}
+
 // CreateAccessToken
 func (f *Account) CreateAccessToken() (accessToken string, err error) {
 	comp := common.GetJwtInstance()
@@ -150,8 +167,8 @@ func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, er
 	return account, err
 }
 
-// GetAccountByUserID
-func GetAccountByUserID(ctx context.Context, id int64) (*Account, error) {
+// GetAccountByUserId
+func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
 	if user, err := orm.FindUser(
 		ctx,
 		common.GetContextDb(ctx),
@@ -251,4 +268,36 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	}
 
 	return account, nil
+}
+
+// GetAccountByAccessToken
+//
+// ErrorsRef:
+//   - common.GetContextAccessTokenClaims
+//   - facade.GetAccountByUserId
+func GetAccountByAccessToken(ctx context.Context) (*Account, error) {
+	if claims, err := common.GetContextAccessTokenClaims(ctx); err != nil {
+		return nil, err
+	} else {
+		return GetAccountByUserId(
+			ctx,
+			dto.MustRetrieveIdentifier(claims.Subject),
+		)
+	}
+}
+
+// GetAccountByRefreshToken
+//
+// ErrorsRef:
+//   - common.GetContextRefreshTokenClaims
+//   - facade.GetAccountByUserId
+func GetAccountByRefreshToken(ctx context.Context) (*Account, error) {
+	if claims, err := common.GetContextRefreshTokenClaims(ctx); err != nil {
+		return nil, err
+	} else {
+		return GetAccountByUserId(
+			ctx,
+			dto.MustRetrieveIdentifier(claims.Subject),
+		)
+	}
 }

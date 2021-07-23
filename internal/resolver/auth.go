@@ -8,6 +8,10 @@ import (
 	"go.giteam.ir/giteam/internal/facade"
 )
 
+//
+// TODO: delegate logic to the controller layer
+//
+
 // createAccessTokenByAccount
 func createAccessTokenByAccoount(account *facade.Account) string {
 	if accessToken, err := account.CreateAccessToken(); err != nil {
@@ -76,18 +80,13 @@ func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*
 
 // RefreshToken
 func (*mutationResolver) RefreshToken(ctx context.Context) (string, error) {
-	if claims, err := common.GetContextRefreshTokenClaims(ctx); err != nil {
+	if account, err := facade.GetAccountByRefreshToken(
+		ctx,
+	); err != nil {
 		return "", AuthenticationErrorFrom(err)
 	} else {
-		if account, err := facade.GetAccountByUserID(
-			ctx,
-			dto.MustRetrieveIdentifier(claims.Subject),
-		); err != nil {
-			panic(err)
-		} else {
-			return createAccessTokenByAccoount(
-				account,
-			), nil
-		}
+		return createAccessTokenByAccoount(
+			account,
+		), nil
 	}
 }
