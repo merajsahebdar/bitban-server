@@ -7,6 +7,11 @@ import (
 	"go.giteam.ir/giteam/internal/orm"
 )
 
+const (
+	UserNodeType        NodeType = "User"
+	UserProfileNodeType NodeType = "UserProfile"
+)
+
 // User
 type User struct {
 	ID        string    `json:"id"`
@@ -17,11 +22,14 @@ type User struct {
 	IsBanned  bool      `json:"isBanned"`
 }
 
+// IsNode
+func (User) IsNode() {}
+
 // UserFrom Returns an instance of model: `User` from its datasource.
 func UserFrom(user *orm.User) *User {
 	if user != nil {
 		return &User{
-			ID:        ToGlobalID("User", user.ID),
+			ID:        ToNodeIdentifier(UserNodeType, user.ID),
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			RemovedAt: user.RemovedAt,
@@ -43,7 +51,7 @@ type UserProfile struct {
 func UserProfileFrom(profile *orm.UserProfile) *UserProfile {
 	if profile != nil {
 		return &UserProfile{
-			ID:   ToGlobalID("UserProfile", profile.ID),
+			ID:   ToNodeIdentifier(UserProfileNodeType, profile.ID),
 			Name: profile.Name,
 		}
 	}

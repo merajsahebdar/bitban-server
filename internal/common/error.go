@@ -63,6 +63,11 @@ var (
 	ErrUserInput        = errors.New("the provided input is not correct")
 )
 
+// IsResourceNotFoundError
+func IsResourceNotFoundError(err error) bool {
+	return err == ErrResourceNotFound
+}
+
 // IsNonResourceNotFoundError
 func IsNonResourceNotFoundError(err error) bool {
 	return err != nil && err != ErrResourceNotFound

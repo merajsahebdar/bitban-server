@@ -8,6 +8,13 @@ import (
 // ErrorExtensions
 type ErrorExtensions = map[string]interface{}
 
+// newNotFound
+func newNotFoundErrorExtensions() ErrorExtensions {
+	return ErrorExtensions{
+		"code": "NOT_FOUND",
+	}
+}
+
 // newAuthenticationErrorExtensions
 func newAuthenticationErrorExtensions() ErrorExtensions {
 	return ErrorExtensions{
@@ -33,6 +40,14 @@ func newUserInputErrorExtensions() ErrorExtensions {
 func newInternalServerErrorExtensions() ErrorExtensions {
 	return ErrorExtensions{
 		"code": "INTERNAL_SERVER_ERROR",
+	}
+}
+
+// NotFoundError
+func NotFoundError(err error) *gqlerror.Error {
+	return &gqlerror.Error{
+		Message:    "no such resource found",
+		Extensions: newNotFoundErrorExtensions(),
 	}
 }
 

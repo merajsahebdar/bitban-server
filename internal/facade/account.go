@@ -156,6 +156,22 @@ func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, er
 	return account, err
 }
 
+// GetAccountByUserID
+func GetAccountByUserID(ctx context.Context, id int64) (*Account, error) {
+	if user, err := orm.FindUser(
+		ctx,
+		common.GetContextDB(ctx),
+		id,
+	); err != nil {
+		return nil, err
+	} else {
+		return &Account{
+			ctx:  ctx,
+			user: user,
+		}, nil
+	}
+}
+
 // CreateAccount
 func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account, err error) {
 	db := common.GetContextDB(ctx)

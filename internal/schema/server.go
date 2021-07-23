@@ -61,7 +61,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		User func(childComplexity int, filter dto.UserFilter) int
+		Node func(childComplexity int, id string) int
 	}
 
 	User struct {
@@ -86,7 +86,7 @@ type MutationResolver interface {
 	RefreshToken(ctx context.Context) (string, error)
 }
 type QueryResolver interface {
-	User(ctx context.Context, filter dto.UserFilter) (*dto.User, error)
+	Node(ctx context.Context, id string) (dto.Node, error)
 }
 type UserResolver interface {
 	Profile(ctx context.Context, obj *dto.User) (*dto.UserProfile, error)
@@ -152,17 +152,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SignUp(childComplexity, args["input"].(dto.SignUpInput)), true
 
-	case "Query.user":
-		if e.complexity.Query.User == nil {
+	case "Query.node":
+		if e.complexity.Query.Node == nil {
 			break
 		}
 
-		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_node_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.User(childComplexity, args["filter"].(dto.UserFilter)), true
+		return e.complexity.Query.Node(childComplexity, args["id"].(string)), true
 
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
@@ -317,10 +317,17 @@ input PermissionPolicy {
 }
 
 # ====
+# Node
+# ----
+interface Node {
+  id: ID!
+}
+
+# ====
 # User
 # ----
 
-type User {
+type User implements Node {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -328,7 +335,7 @@ type User {
   isActive: Boolean!
   isBanned: Boolean!
 
-  profile: UserProfile! @guard(permission: { subLookup: "HEADER", def: { obj: "/users/{{.parent.ID}}/profiles/{{.filter.ID}}", act: "read" } })
+  profile: UserProfile!
 }
 
 # ============
@@ -384,9 +391,9 @@ input SignInInput {
 
 type Query {
   """
-  Returns a user if exists using its identifier.
+  Returns an existing resource using its node identifier.
   """
-  user(filter: UserFilter!): User @guard(permission: { subLookup: "HEADER", def: { obj: "/users/{{.filter.ID}}", act: "read" } })
+  node(id: ID!): Node @guard(permission: { subLookup: "HEADER" })
 }
 
 input UserFilter {
@@ -481,18 +488,18 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 dto.UserFilter
-	if tmp, ok := rawArgs["filter"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filter"))
-		arg0, err = ec.unmarshalNUserFilter2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐUserFilter(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filter"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -747,7 +754,7 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -764,7 +771,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_user_args(ctx, rawArgs)
+	args, err := ec.field_Query_node_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -773,10 +780,10 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().User(rctx, args["filter"].(dto.UserFilter))
+			return ec.resolvers.Query().Node(rctx, args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			permission, err := ec.unmarshalNPermissionPolicy2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionPolicy(ctx, map[string]interface{}{"def": map[string]interface{}{"act": "read", "obj": "/users/{{.filter.ID}}"}, "subLookup": "HEADER"})
+			permission, err := ec.unmarshalNPermissionPolicy2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionPolicy(ctx, map[string]interface{}{"subLookup": "HEADER"})
 			if err != nil {
 				return nil, err
 			}
@@ -793,10 +800,10 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*dto.User); ok {
+		if data, ok := tmp.(dto.Node); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *go.giteam.ir/giteam/internal/dto.User`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be go.giteam.ir/giteam/internal/dto.Node`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -805,9 +812,9 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*dto.User)
+	res := resTmp.(dto.Node)
 	fc.Result = res
-	return ec.marshalOUser2ᚖgoᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐUser(ctx, field.Selections, res)
+	return ec.marshalONode2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1105,32 +1112,8 @@ func (ec *executionContext) _User_profile(ctx context.Context, field graphql.Col
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.User().Profile(rctx, obj)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			permission, err := ec.unmarshalNPermissionPolicy2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionPolicy(ctx, map[string]interface{}{"def": map[string]interface{}{"act": "read", "obj": "/users/{{.parent.ID}}/profiles/{{.filter.ID}}"}, "subLookup": "HEADER"})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Guard == nil {
-				return nil, errors.New("directive guard is not implemented")
-			}
-			return ec.directives.Guard(ctx, obj, directive0, permission)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*dto.UserProfile); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *go.giteam.ir/giteam/internal/dto.UserProfile`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().Profile(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2496,6 +2479,22 @@ func (ec *executionContext) unmarshalInputUserFilter(ctx context.Context, obj in
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj dto.Node) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case dto.User:
+		return ec._User(ctx, sel, &obj)
+	case *dto.User:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._User(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -2588,7 +2587,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "user":
+		case "node":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -2596,7 +2595,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_user(ctx, field)
+				res = ec._Query_node(ctx, field)
 				return res
 			})
 		case "__type":
@@ -2614,7 +2613,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var userImplementors = []string{"User"}
+var userImplementors = []string{"User", "Node"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *dto.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
@@ -3079,11 +3078,6 @@ func (ec *executionContext) marshalNUser2ᚖgoᚗgiteamᚗirᚋgiteamᚋinternal
 	return ec._User(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUserFilter2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐUserFilter(ctx context.Context, v interface{}) (dto.UserFilter, error) {
-	res, err := ec.unmarshalInputUserFilter(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNUserProfile2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v dto.UserProfile) graphql.Marshaler {
 	return ec._UserProfile(ctx, sel, &v)
 }
@@ -3360,6 +3354,13 @@ func (ec *executionContext) marshalODateTime2githubᚗcomᚋvolatiletechᚋnull�
 	return scalars.MarshalNullDateTime(v)
 }
 
+func (ec *executionContext) marshalONode2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐNode(ctx context.Context, sel ast.SelectionSet, v dto.Node) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Node(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOPermissionDefinition2ᚖgoᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionDefinition(ctx context.Context, v interface{}) (*dto.PermissionDefinition, error) {
 	if v == nil {
 		return nil, nil
@@ -3390,13 +3391,6 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
-}
-
-func (ec *executionContext) marshalOUser2ᚖgoᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐUser(ctx context.Context, sel ast.SelectionSet, v *dto.User) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

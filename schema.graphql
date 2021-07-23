@@ -24,10 +24,17 @@ input PermissionPolicy {
 }
 
 # ====
+# Node
+# ----
+interface Node {
+  id: ID!
+}
+
+# ====
 # User
 # ----
 
-type User {
+type User implements Node {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -35,7 +42,7 @@ type User {
   isActive: Boolean!
   isBanned: Boolean!
 
-  profile: UserProfile! @guard(permission: { subLookup: "HEADER", def: { obj: "/users/{{.parent.ID}}/profiles/{{.filter.ID}}", act: "read" } })
+  profile: UserProfile!
 }
 
 # ============
@@ -91,9 +98,9 @@ input SignInInput {
 
 type Query {
   """
-  Returns an existing user using its identifier.
+  Returns an existing resource using its node identifier.
   """
-  user(filter: UserFilter!): User @guard(permission: { subLookup: "HEADER", def: { obj: "/users/{{.filter.ID}}", act: "read" } })
+  node(id: ID!): Node @guard(permission: { subLookup: "HEADER" })
 }
 
 input UserFilter {
