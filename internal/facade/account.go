@@ -87,7 +87,8 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 		time.Duration(common.Cog.Security.RefreshTokenExpiresAt) * time.Minute,
 	)
 	claims := &jwt.StandardClaims{
-		Subject:   dto.ToNodeIdentifier(dto.UserTokenNodeType, userToken.ID),
+		Id:        dto.ToNodeIdentifier(dto.UserTokenNodeType, userToken.ID),
+		Subject:   dto.ToNodeIdentifier(dto.UserNodeType, f.user.ID),
 		IssuedAt:  currTime.Unix(),
 		ExpiresAt: expiresAt.Unix(),
 	}
