@@ -9,6 +9,8 @@ import (
 
 const (
 	UserNodeType        NodeType = "User"
+	UserTokenNodeType   NodeType = "UserToken"
+	UserEmailNodeType   NodeType = "UserEmail"
 	UserProfileNodeType NodeType = "UserProfile"
 )
 

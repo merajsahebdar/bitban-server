@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -60,7 +58,7 @@ func (f *Account) CreateAccessToken() (accessToken string, err error) {
 
 	currTime := time.Now().In(time.UTC)
 	claims := &jwt.StandardClaims{
-		Subject:  strconv.FormatInt(f.user.ID, 10),
+		Subject:  dto.ToNodeIdentifier(dto.UserNodeType, f.user.ID),
 		IssuedAt: currTime.Unix(),
 		ExpiresAt: currTime.Add(
 			time.Duration(common.Cog.Security.AccessTokenExpiresAt) * time.Minute,
@@ -89,7 +87,7 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 		time.Duration(common.Cog.Security.RefreshTokenExpiresAt) * time.Minute,
 	)
 	claims := &jwt.StandardClaims{
-		Subject:   strconv.FormatInt(userToken.ID, 10),
+		Subject:   dto.ToNodeIdentifier(dto.UserTokenNodeType, userToken.ID),
 		IssuedAt:  currTime.Unix(),
 		ExpiresAt: expiresAt.Unix(),
 	}
@@ -98,12 +96,7 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 		return "", err
 	}
 
-	common.SetCookie(f.ctx, &http.Cookie{
-		Name:     common.AuthCookie,
-		Value:    refreshToken,
-		HttpOnly: true,
-		Expires:  expiresAt,
-	})
+	common.SetRefreshTokenCookie(f.ctx, refreshToken)
 
 	return refreshToken, nil
 }

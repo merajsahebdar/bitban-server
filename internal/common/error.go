@@ -7,11 +7,16 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-// ErrMissingJwtToken
-var ErrMissingJwtToken = errors.New("the jwt token is missing or malformed")
+var (
+	// ErrMissingCookie
+	ErrMissingCookie = errors.New("there is no such cookie")
 
-// ErrInvalidJwtToken
-var ErrInvalidJwtToken = errors.New("the jwt token is invalid or expired")
+	// ErrMissingJwtToken
+	ErrMissingJwtToken = errors.New("the jwt token is missing or malformed")
+
+	// ErrInvalidJwtToken
+	ErrInvalidJwtToken = errors.New("the jwt token is invalid or expired")
+)
 
 // ValidationError
 type ValidationError struct {

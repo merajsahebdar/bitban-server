@@ -45,7 +45,6 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	Guard func(ctx context.Context, obj interface{}, next graphql.Resolver, permission dto.PermissionPolicy) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -295,27 +294,6 @@ var sources = []*ast.Source{
 
 scalar DateTime
 
-# =====
-# Guard
-# -----
-
-directive @guard(permission: PermissionPolicy!) on FIELD_DEFINITION
-
-enum PermissionSubLookup {
-  HEADER
-  COOKIE
-}
-
-input PermissionDefinition {
-  obj: String!
-  act: String!
-}
-
-input PermissionPolicy {
-  subLookup: PermissionSubLookup!
-  def: PermissionDefinition
-}
-
 # ====
 # Node
 # ----
@@ -334,7 +312,6 @@ type User implements Node {
   removedAt: DateTime
   isActive: Boolean!
   isBanned: Boolean!
-
   profile: UserProfile!
 }
 
@@ -363,7 +340,6 @@ type Auth {
 input SignUpInput {
   password: String!
   passwordConfirm: String!
-
   profile: SignUpProfileInput!
   primaryEmail: SignUpPrimaryEmailInput!
 }
@@ -393,7 +369,7 @@ type Query {
   """
   Returns an existing resource using its node identifier.
   """
-  node(id: ID!): Node @guard(permission: { subLookup: "HEADER" })
+  node(id: ID!): Node
 }
 
 input UserFilter {
@@ -418,7 +394,7 @@ type Mutation {
   """
   Generate a new access token using the current refresh token stored in cookies.
   """
-  refreshToken: String! @guard(permission: { subLookup: "COOKIE" })
+  refreshToken: String!
 }
 `, BuiltIn: false},
 }
@@ -427,21 +403,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) dir_guard_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 dto.PermissionPolicy
-	if tmp, ok := rawArgs["permission"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("permission"))
-		arg0, err = ec.unmarshalNPermissionPolicy2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionPolicy(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["permission"] = arg0
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -712,32 +673,8 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().RefreshToken(rctx)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			permission, err := ec.unmarshalNPermissionPolicy2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionPolicy(ctx, map[string]interface{}{"subLookup": "COOKIE"})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Guard == nil {
-				return nil, errors.New("directive guard is not implemented")
-			}
-			return ec.directives.Guard(ctx, nil, directive0, permission)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RefreshToken(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -778,32 +715,8 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Node(rctx, args["id"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			permission, err := ec.unmarshalNPermissionPolicy2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionPolicy(ctx, map[string]interface{}{"subLookup": "HEADER"})
-			if err != nil {
-				return nil, err
-			}
-			if ec.directives.Guard == nil {
-				return nil, errors.New("directive guard is not implemented")
-			}
-			return ec.directives.Guard(ctx, nil, directive0, permission)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(dto.Node); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be go.giteam.ir/giteam/internal/dto.Node`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Node(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2287,62 +2200,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputPermissionDefinition(ctx context.Context, obj interface{}) (dto.PermissionDefinition, error) {
-	var it dto.PermissionDefinition
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "obj":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("obj"))
-			it.Obj, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "act":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("act"))
-			it.Act, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputPermissionPolicy(ctx context.Context, obj interface{}) (dto.PermissionPolicy, error) {
-	var it dto.PermissionPolicy
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "subLookup":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subLookup"))
-			it.SubLookup, err = ec.unmarshalNPermissionSubLookup2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionSubLookup(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "def":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("def"))
-			it.Def, err = ec.unmarshalOPermissionDefinition2ᚖgoᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionDefinition(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputSignInInput(ctx context.Context, obj interface{}) (dto.SignInInput, error) {
 	var it dto.SignInInput
 	var asMap = obj.(map[string]interface{})
@@ -3012,27 +2869,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNPermissionPolicy2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionPolicy(ctx context.Context, v interface{}) (dto.PermissionPolicy, error) {
-	res, err := ec.unmarshalInputPermissionPolicy(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNPermissionSubLookup2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionSubLookup(ctx context.Context, v interface{}) (dto.PermissionSubLookup, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	res := dto.PermissionSubLookup(tmp)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNPermissionSubLookup2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionSubLookup(ctx context.Context, sel ast.SelectionSet, v dto.PermissionSubLookup) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNSignInInput2goᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐSignInInput(ctx context.Context, v interface{}) (dto.SignInInput, error) {
 	res, err := ec.unmarshalInputSignInInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3359,14 +3195,6 @@ func (ec *executionContext) marshalONode2goᚗgiteamᚗirᚋgiteamᚋinternalᚋ
 		return graphql.Null
 	}
 	return ec._Node(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOPermissionDefinition2ᚖgoᚗgiteamᚗirᚋgiteamᚋinternalᚋdtoᚐPermissionDefinition(ctx context.Context, v interface{}) (*dto.PermissionDefinition, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputPermissionDefinition(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

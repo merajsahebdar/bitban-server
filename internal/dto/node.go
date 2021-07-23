@@ -26,9 +26,9 @@ func ToNodeIdentifier(nType NodeType, id int64) string {
 }
 
 // FromNodeIdentifier
-func FromNodeIdentifier(globalID string) (nType NodeType, id int64, err error) {
+func FromNodeIdentifier(nIdentifier string) (nType NodeType, id int64, err error) {
 	var byt []byte
-	byt, err = base64.RawStdEncoding.DecodeString(globalID)
+	byt, err = base64.RawStdEncoding.DecodeString(nIdentifier)
 
 	if err == nil {
 		dec := strings.Split(string(byt), ":")
@@ -37,4 +37,13 @@ func FromNodeIdentifier(globalID string) (nType NodeType, id int64, err error) {
 	}
 
 	return nType, id, err
+}
+
+// MustRetrieveIdentifier
+func MustRetrieveIdentifier(nIdentifier string) int64 {
+	if _, id, err := FromNodeIdentifier(nIdentifier); err != nil {
+		panic(err)
+	} else {
+		return id
+	}
 }

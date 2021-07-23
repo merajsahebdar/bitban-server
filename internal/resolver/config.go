@@ -15,10 +15,5 @@ func newConfig() schema.Config {
 		Resolvers: &rootResolver{
 			validate: common.GetValidateInstance(),
 		},
-		Directives: schema.DirectiveRoot{
-			Guard: (&Guard{
-				enforcer: common.GetEnforcerInstance(),
-			}).Exec,
-		},
 	}
 }

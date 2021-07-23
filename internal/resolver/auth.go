@@ -76,14 +76,18 @@ func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*
 
 // RefreshToken
 func (*mutationResolver) RefreshToken(ctx context.Context) (string, error) {
-	if account, err := facade.GetAccountByUser(
-		ctx,
-		common.GetContextAuthorizedUser(ctx),
-	); err != nil {
-		panic(err)
+	if claims, err := common.GetContextRefreshTokenClaims(ctx); err != nil {
+		return "", AuthenticationErrorFrom(err)
 	} else {
-		return createAccessTokenByAccoount(
-			account,
-		), nil
+		if account, err := facade.GetAccountByUserID(
+			ctx,
+			dto.MustRetrieveIdentifier(claims.Subject),
+		); err != nil {
+			panic(err)
+		} else {
+			return createAccessTokenByAccoount(
+				account,
+			), nil
+		}
 	}
 }
