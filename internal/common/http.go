@@ -22,7 +22,7 @@ func ContextWrapper() echo.MiddlewareFunc {
 		return func(ec echo.Context) error {
 			var nextCtx context.Context
 			nextCtx = context.WithValue(ec.Request().Context(), echoContextKey{}, ec)
-			nextCtx = ContextWithDB(nextCtx, GetDbInstance())
+			nextCtx = ContextWithDb(nextCtx, GetDbInstance())
 
 			ec.SetRequest(ec.Request().WithContext(nextCtx))
 

@@ -71,7 +71,7 @@ func (f *Account) CreateAccessToken() (accessToken string, err error) {
 
 // CreateRefreshToken
 func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
-	db := common.GetContextDB(f.ctx)
+	db := common.GetContextDb(f.ctx)
 	comp := common.GetJwtInstance()
 
 	userToken := &orm.UserToken{
@@ -106,7 +106,7 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 //
 // If was not able to find the corresponding account, returns `common.ErrUserInput`.
 func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account, error) {
-	db := common.GetContextDB(ctx)
+	db := common.GetContextDb(ctx)
 
 	var err error
 
@@ -154,7 +154,7 @@ func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, er
 func GetAccountByUserID(ctx context.Context, id int64) (*Account, error) {
 	if user, err := orm.FindUser(
 		ctx,
-		common.GetContextDB(ctx),
+		common.GetContextDb(ctx),
 		id,
 	); err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func GetAccountByUserID(ctx context.Context, id int64) (*Account, error) {
 
 // CreateAccount
 func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account, err error) {
-	db := common.GetContextDB(ctx)
+	db := common.GetContextDb(ctx)
 
 	var tx *sql.Tx
 	if tx, err = db.BeginTx(ctx, nil); err != nil {

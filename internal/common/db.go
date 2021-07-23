@@ -17,13 +17,13 @@ import (
 // dbKey
 type dbKey struct{}
 
-// ContextWithDB
-func ContextWithDB(ctx context.Context, db *sql.DB) context.Context {
+// ContextWithDb
+func ContextWithDb(ctx context.Context, db *sql.DB) context.Context {
 	return context.WithValue(ctx, dbKey{}, db)
 }
 
-// GetContextDB
-func GetContextDB(ctx context.Context) *sql.DB {
+// GetContextDb
+func GetContextDb(ctx context.Context) *sql.DB {
 	return ctx.Value(dbKey{}).(*sql.DB)
 }
 
