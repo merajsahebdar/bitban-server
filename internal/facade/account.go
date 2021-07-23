@@ -3,6 +3,7 @@ package facade
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -207,6 +208,19 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	// Last Step!
 
 	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	// Grant Permissions
+	sub := fmt.Sprintf("/users/%d", user.ID)
+	dom := common.DefaultUserDomain
+	if _, err = common.GetEnforcerInstance().AddNamedPolicies(
+		"p",
+		[][]string{
+			{sub, dom, fmt.Sprintf("/users/%d", user.ID), ".*"},
+			{sub, dom, fmt.Sprintf("/users/%d/*", user.ID), ".*"},
+		},
+	); err != nil {
 		return nil, err
 	}
 
