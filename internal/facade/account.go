@@ -3,6 +3,7 @@ package facade
 import (
 	"context"
 	"database/sql"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 type (
 	// Account
 	Account struct {
+		ctx         context.Context
 		user        *orm.User
 		userEmail   *orm.UserEmail
 		userProfile *orm.UserProfile
@@ -44,9 +46,6 @@ var (
 		orm.UserProfileTableColumns.Meta,
 		orm.UserProfileTableColumns.UserID,
 	)
-
-	// defaultUserProfileMeta
-	defaultUserProfileMeta = []byte(`{}`)
 )
 
 // GetUser
@@ -69,6 +68,43 @@ func (f *Account) CreateAccessToken() (accessToken string, err error) {
 
 	accessToken, err = comp.SignToken(claims)
 	return accessToken, err
+}
+
+// CreateRefreshToken
+func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
+	db := common.GetContextDB(f.ctx)
+	comp := common.GetJwtInstance()
+
+	userToken := &orm.UserToken{
+		Meta:   []byte(`{}`),
+		UserID: null.Int64From(f.user.ID),
+	}
+	if err = userToken.Insert(f.ctx, db, boil.Infer()); err != nil {
+		return "", err
+	}
+
+	currTime := time.Now().In(time.UTC)
+	expiresAt := currTime.Add(
+		time.Duration(common.Cog.Security.RefreshTokenExpiresAt) * time.Minute,
+	)
+	claims := &jwt.StandardClaims{
+		Subject:   strconv.FormatInt(userToken.ID, 10),
+		IssuedAt:  currTime.Unix(),
+		ExpiresAt: expiresAt.Unix(),
+	}
+
+	if refreshToken, err = comp.SignToken(claims); err != nil {
+		return "", err
+	}
+
+	common.SetCookie(f.ctx, &http.Cookie{
+		Name:     common.AuthCookie,
+		Value:    refreshToken,
+		HttpOnly: true,
+		Expires:  expiresAt,
+	})
+
+	return refreshToken, nil
 }
 
 // GetAccountByPassword
@@ -159,7 +195,7 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 
 	userProfile := &orm.UserProfile{
 		Name:   input.Profile.Name,
-		Meta:   defaultUserProfileMeta,
+		Meta:   []byte(`{}`),
 		UserID: null.Int64From(user.ID),
 	}
 	if err = userProfile.Insert(ctx, tx, boil.Infer()); err != nil {
@@ -174,6 +210,7 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	}
 
 	account = &Account{
+		ctx:         ctx,
 		user:        user,
 		userEmail:   userEmail,
 		userProfile: userProfile,

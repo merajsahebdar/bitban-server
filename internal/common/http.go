@@ -15,8 +15,8 @@ import (
 // authScheme
 const authScheme = "Bearer"
 
-// authCookie
-const authCookie = "refresh-token"
+// AuthCookie
+const AuthCookie = "refresh-token"
 
 // authorizedUserKey
 type authorizedUserKey struct{}
@@ -95,7 +95,7 @@ func AuthorizeUser(ctx context.Context, subLookup dto.PermissionSubLookup) (*orm
 		}
 	case dto.PermissionSubCookieLookup:
 		var cookie *http.Cookie
-		if cookie, err = ec.Cookie(authCookie); err != nil {
+		if cookie, err = ec.Cookie(AuthCookie); err != nil {
 			return nil, ErrMissingJwtToken
 		}
 

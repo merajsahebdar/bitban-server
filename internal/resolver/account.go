@@ -8,6 +8,23 @@ import (
 	"go.giteam.ir/giteam/internal/facade"
 )
 
+// createAuthTokensByAccount
+func createAuthTokensByAccount(account *facade.Account) (string, string) {
+	var err error
+
+	var refreshToken string
+	if refreshToken, err = account.CreateRefreshToken(); err != nil {
+		panic(err)
+	}
+
+	var accessToken string
+	if accessToken, err = account.CreateAccessToken(); err != nil {
+		panic(err)
+	}
+
+	return refreshToken, accessToken
+}
+
 // User Returns an existing user using its identifier.
 func (*queryResolver) User(context.Context, dto.UserFilter) (*dto.User, error) {
 	panic("not implemented")
@@ -29,10 +46,7 @@ func (r *mutationResolver) SignIn(ctx context.Context, input dto.SignInInput) (*
 	} else if common.IsUserInputError(err) {
 		return nil, UserInputErrorFrom(err)
 	} else {
-		var accessToken string
-		if accessToken, err = account.CreateAccessToken(); err != nil {
-			panic(err)
-		}
+		_, accessToken := createAuthTokensByAccount(account)
 
 		return &dto.Auth{
 			AccessToken: accessToken,
@@ -52,10 +66,7 @@ func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*
 	if account, err := facade.CreateAccount(ctx, input); err != nil {
 		panic(err)
 	} else {
-		var accessToken string
-		if accessToken, err = account.CreateAccessToken(); err != nil {
-			panic(err)
-		}
+		_, accessToken := createAuthTokensByAccount(account)
 
 		return &dto.Auth{
 			AccessToken: accessToken,
