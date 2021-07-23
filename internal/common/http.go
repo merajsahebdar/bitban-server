@@ -65,8 +65,8 @@ func SetCookie(ctx context.Context, cookie *http.Cookie) {
 	ec.SetCookie(cookie)
 }
 
-// GetAuthorizedUser
-func GetAuthorizedUser(ctx context.Context) *orm.User {
+// GetContextAuthorizedUser
+func GetContextAuthorizedUser(ctx context.Context) *orm.User {
 	if user, ok := ctx.Value(authorizedUserKey{}).(*orm.User); ok {
 		return user
 	}
@@ -76,7 +76,7 @@ func GetAuthorizedUser(ctx context.Context) *orm.User {
 
 // AuthorizeUser
 func AuthorizeUser(ctx context.Context, subLookup dto.PermissionSubLookup) (*orm.User, error) {
-	if user := GetAuthorizedUser(ctx); user != nil {
+	if user := GetContextAuthorizedUser(ctx); user != nil {
 		return user, nil
 	}
 

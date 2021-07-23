@@ -8,6 +8,15 @@ import (
 	"go.giteam.ir/giteam/internal/facade"
 )
 
+// createAccessTokenByAccount
+func createAccessTokenByAccoount(account *facade.Account) string {
+	if accessToken, err := account.CreateAccessToken(); err != nil {
+		panic(err)
+	} else {
+		return accessToken
+	}
+}
+
 // createAuthTokensByAccount
 func createAuthTokensByAccount(account *facade.Account) (string, string) {
 	var err error
@@ -17,12 +26,7 @@ func createAuthTokensByAccount(account *facade.Account) (string, string) {
 		panic(err)
 	}
 
-	var accessToken string
-	if accessToken, err = account.CreateAccessToken(); err != nil {
-		panic(err)
-	}
-
-	return refreshToken, accessToken
+	return refreshToken, createAccessTokenByAccoount(account)
 }
 
 // User Returns an existing user using its identifier.
@@ -76,8 +80,17 @@ func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*
 }
 
 // RefreshToken
-func (*mutationResolver) RefreshToken(context.Context) (string, error) {
-	panic("not implemented")
+func (*mutationResolver) RefreshToken(ctx context.Context) (string, error) {
+	if account, err := facade.GetAccountByUser(
+		ctx,
+		common.GetContextAuthorizedUser(ctx),
+	); err != nil {
+		panic(err)
+	} else {
+		return createAccessTokenByAccoount(
+			account,
+		), nil
+	}
 }
 
 // Profile

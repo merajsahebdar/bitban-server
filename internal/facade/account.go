@@ -147,6 +147,15 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 	}, nil
 }
 
+// GetAccountByUser
+func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, err error) {
+	account = &Account{
+		ctx:  ctx,
+		user: user,
+	}
+	return account, err
+}
+
 // CreateAccount
 func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account, err error) {
 	db := common.GetContextDB(ctx)
