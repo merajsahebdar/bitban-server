@@ -1,4 +1,4 @@
-package common
+package auth
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
+	"go.giteam.ir/giteam/internal/common"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 
 // SetRefreshTokenCookie
 func SetRefreshTokenCookie(ctx context.Context, refreshToken string) {
-	SetCookie(ctx, &http.Cookie{
+	common.SetCookie(ctx, &http.Cookie{
 		Name:     refreshTokenCookie,
 		Value:    refreshToken,
 		HttpOnly: true,
@@ -39,11 +40,11 @@ func isTokenExpired(claims *jwt.StandardClaims) bool {
 // ErrorsRef:
 //   - common.GetCookie
 func GetContextRefreshTokenClaims(ctx context.Context) (*jwt.StandardClaims, error) {
-	if cookie, err := GetCookie(ctx, refreshTokenCookie); err != nil {
+	if cookie, err := common.GetCookie(ctx, refreshTokenCookie); err != nil {
 		return nil, err
 	} else {
-		if claims, err := GetJwtInstance().VerifyToken(cookie.Value); err != nil || isTokenExpired(claims) {
-			return nil, ErrInvalidJwtToken
+		if claims, err := common.GetJwtInstance().VerifyToken(cookie.Value); err != nil || isTokenExpired(claims) {
+			return nil, common.ErrInvalidJwtToken
 		} else {
 			return claims, nil
 		}
@@ -56,22 +57,20 @@ func GetContextRefreshTokenClaims(ctx context.Context) (*jwt.StandardClaims, err
 //   - common.ErrMissingJwtToken in case of missing jwt token
 //   - common.ErrInvalidJwtToken in case of invalid or expired jwt token
 func GetContextAccessTokenClaims(ctx context.Context) (*jwt.StandardClaims, error) {
-	ec := getEchoContext(ctx)
-
 	var token string
 
-	authorization := ec.Request().Header.Get(echo.HeaderAuthorization)
+	authorization := common.GetHeader(ctx, echo.HeaderAuthorization)
 	schemeLength := len(authHeaderScheme)
 	if len(authorization) > schemeLength+1 && authorization[:schemeLength] == authHeaderScheme {
 		token = authorization[schemeLength+1:]
 	}
 
 	if token == "" {
-		return nil, ErrMissingJwtToken
+		return nil, common.ErrMissingJwtToken
 	}
 
-	if claims, err := GetJwtInstance().VerifyToken(token); err != nil || isTokenExpired(claims) {
-		return nil, ErrInvalidJwtToken
+	if claims, err := common.GetJwtInstance().VerifyToken(token); err != nil || isTokenExpired(claims) {
+		return nil, common.ErrInvalidJwtToken
 	} else {
 		return claims, nil
 	}

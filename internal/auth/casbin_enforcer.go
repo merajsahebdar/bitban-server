@@ -1,4 +1,4 @@
-package common
+package auth
 
 import (
 	"sync"
@@ -8,9 +8,6 @@ import (
 	"go.giteam.ir/giteam/internal/conf"
 	"go.uber.org/zap"
 )
-
-// DefaultUserDomain
-const DefaultUserDomain = "_"
 
 // enforcerLock
 var enforcerLock = &sync.Mutex{}

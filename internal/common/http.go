@@ -47,6 +47,12 @@ func SetCookie(ctx context.Context, cookie *http.Cookie) {
 	ec.SetCookie(cookie)
 }
 
+// GetHeader
+func GetHeader(ctx context.Context, key string) string {
+	ec := getEchoContext(ctx)
+	return ec.Request().Header.Get(key)
+}
+
 // GetCookie
 func GetCookie(ctx context.Context, cookieName string) (cookie *http.Cookie, err error) {
 	ec := getEchoContext(ctx)

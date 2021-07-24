@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/casbin/casbin/v2"
+	"go.giteam.ir/giteam/internal/auth"
 	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/dto"
 	"go.giteam.ir/giteam/internal/facade"
@@ -54,6 +55,6 @@ var AccountOpt = fx.Provide(newAccount)
 // newAccount
 func newAccount() *Account {
 	return &Account{
-		enforcer: common.GetEnforcerInstance(),
+		enforcer: auth.GetEnforcerInstance(),
 	}
 }

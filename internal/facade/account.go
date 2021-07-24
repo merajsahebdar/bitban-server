@@ -10,12 +10,16 @@ import (
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"go.giteam.ir/giteam/internal/auth"
 	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/dto"
 	"go.giteam.ir/giteam/internal/orm"
 )
+
+// defaultDomain
+const defaultDomain = "_"
 
 type (
 	// Account
@@ -59,9 +63,9 @@ func (f *Account) GetUser() *orm.User {
 // Errors:
 //   - common.ErrForbidden if the authorized user does not have access to the resource
 func (f *Account) CheckPermission(obj string, act string) error {
-	if ok, err := common.GetEnforcerInstance().Enforce(
+	if ok, err := auth.GetEnforcerInstance().Enforce(
 		fmt.Sprintf("/users/%d", f.user.ID),
-		common.DefaultUserDomain,
+		defaultDomain,
 		obj,
 		act,
 	); err != nil || !ok {
@@ -115,7 +119,7 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 		return "", err
 	}
 
-	common.SetRefreshTokenCookie(f.ctx, refreshToken)
+	auth.SetRefreshTokenCookie(f.ctx, refreshToken)
 
 	return refreshToken, nil
 }
@@ -246,12 +250,11 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 
 	// Grant Permissions
 	sub := fmt.Sprintf("/users/%d", user.ID)
-	dom := common.DefaultUserDomain
-	if _, err = common.GetEnforcerInstance().AddNamedPolicies(
+	if _, err = auth.GetEnforcerInstance().AddNamedPolicies(
 		"p",
 		[][]string{
-			{sub, dom, fmt.Sprintf("/users/%d", user.ID), ".*"},
-			{sub, dom, fmt.Sprintf("/users/%d/*", user.ID), ".*"},
+			{sub, defaultDomain, fmt.Sprintf("/users/%d", user.ID), ".*"},
+			{sub, defaultDomain, fmt.Sprintf("/users/%d/*", user.ID), ".*"},
 		},
 	); err != nil {
 		return nil, err
@@ -270,10 +273,10 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 // GetAccountByAccessToken
 //
 // ErrorsRef:
-//   - common.GetContextAccessTokenClaims
+//   - auth.GetContextAccessTokenClaims
 //   - facade.GetAccountByUserId
 func GetAccountByAccessToken(ctx context.Context) (*Account, error) {
-	if claims, err := common.GetContextAccessTokenClaims(ctx); err != nil {
+	if claims, err := auth.GetContextAccessTokenClaims(ctx); err != nil {
 		return nil, err
 	} else {
 		return GetAccountByUserId(
@@ -286,10 +289,10 @@ func GetAccountByAccessToken(ctx context.Context) (*Account, error) {
 // GetAccountByRefreshToken
 //
 // ErrorsRef:
-//   - common.GetContextRefreshTokenClaims
+//   - auth.GetContextRefreshTokenClaims
 //   - facade.GetAccountByUserId
 func GetAccountByRefreshToken(ctx context.Context) (*Account, error) {
-	if claims, err := common.GetContextRefreshTokenClaims(ctx); err != nil {
+	if claims, err := auth.GetContextRefreshTokenClaims(ctx); err != nil {
 		return nil, err
 	} else {
 		return GetAccountByUserId(
