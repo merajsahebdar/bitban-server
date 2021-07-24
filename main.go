@@ -10,6 +10,7 @@ import (
 	"go.giteam.ir/giteam/internal/controller"
 	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/resolver"
+	"go.giteam.ir/giteam/internal/service"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -73,6 +74,8 @@ func (cmd *RunCmd) Run() error {
 		// APIs
 		api.QueueOpt,
 		api.HttpOpt,
+		// API Services
+		service.GraphQLOpt,
 	}
 
 	// Provide fx.NopLogger if it is not running in verbose mode.
