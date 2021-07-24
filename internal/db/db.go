@@ -1,7 +1,6 @@
-package common
+package db
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"sync"
@@ -12,21 +11,9 @@ import (
 	"github.com/markbates/pkger"
 	migrate "github.com/rubenv/sql-migrate"
 	"go.giteam.ir/giteam/internal/conf"
+	"go.giteam.ir/giteam/internal/util"
 	"go.uber.org/zap"
 )
-
-// dbKey
-type dbKey struct{}
-
-// ContextWithDb
-func ContextWithDb(ctx context.Context, db *sql.DB) context.Context {
-	return context.WithValue(ctx, dbKey{}, db)
-}
-
-// GetContextDb
-func GetContextDb(ctx context.Context) *sql.DB {
-	return ctx.Value(dbKey{}).(*sql.DB)
-}
 
 // connectToDatabase Tries to make a connection to the database.
 func connectToDatabase() *sql.DB {
@@ -53,7 +40,7 @@ func connectToDatabase() *sql.DB {
 		}
 
 		return err
-	}, NewExponentialBackoff(duration))
+	}, util.NewExponentialBackoff(duration))
 
 	if err != nil {
 		conf.Log.Fatal("failed to establish a database connection", zap.Duration("backoff", duration), zap.String("error", err.Error()))

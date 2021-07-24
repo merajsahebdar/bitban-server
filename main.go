@@ -6,9 +6,9 @@ import (
 	"github.com/alecthomas/kong"
 	migrate "github.com/rubenv/sql-migrate"
 	"go.giteam.ir/giteam/api"
-	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/controller"
+	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/resolver"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -19,10 +19,8 @@ type MigrateUpCmd struct{}
 
 // Run Applies migrations.
 func (cmd *MigrateUpCmd) Run() error {
-	db := common.GetDbInstance()
-
 	migrate.SetTable("migrations")
-	appliedCount, err := migrate.Exec(db, "postgres", common.GetMigration(), migrate.Up)
+	appliedCount, err := migrate.Exec(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Up)
 	if err != nil {
 		conf.Log.Fatal("failed to apply migrations", zap.String("error", err.Error()))
 	}
@@ -41,10 +39,8 @@ type MigrateDownCmd struct{}
 
 // Run Drops migrations.
 func (cmd *MigrateDownCmd) Run() error {
-	db := common.GetDbInstance()
-
 	migrate.SetTable("migrations")
-	droppedCount, err := migrate.Exec(db, "postgres", common.GetMigration(), migrate.Down)
+	droppedCount, err := migrate.Exec(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Down)
 	if err != nil {
 		conf.Log.Fatal("failed to drop migrations", zap.String("error", err.Error()))
 	}

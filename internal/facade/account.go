@@ -12,6 +12,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/conf"
+	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/dto"
 	"go.giteam.ir/giteam/internal/orm"
 )
@@ -89,14 +90,13 @@ func (f *Account) CreateAccessToken() (accessToken string, err error) {
 
 // CreateRefreshToken
 func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
-	db := common.GetContextDb(f.ctx)
 	comp := common.GetJwtInstance()
 
 	userToken := &orm.UserToken{
 		Meta:   []byte(`{}`),
 		UserID: null.Int64From(f.user.ID),
 	}
-	if err = userToken.Insert(f.ctx, db, boil.Infer()); err != nil {
+	if err = userToken.Insert(f.ctx, db.GetDbInstance(), boil.Infer()); err != nil {
 		return "", err
 	}
 
@@ -124,8 +124,6 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 //
 // If was not able to find the corresponding account, returns `common.ErrUserInput`.
 func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account, error) {
-	db := common.GetContextDb(ctx)
-
 	var err error
 
 	var binder accountBinder
@@ -141,7 +139,7 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 		orm.UserEmailWhere.IsPrimary.EQ(true),
 		orm.UserEmailWhere.IsVerified.EQ(true),
 		orm.UserEmailWhere.RemovedAt.IsNull(),
-	).Bind(ctx, db, &binder); err != nil {
+	).Bind(ctx, db.GetDbInstance(), &binder); err != nil {
 		return nil, err
 	} else if binder.User == (orm.User{}) {
 		return nil, common.ErrUserInput
@@ -172,7 +170,7 @@ func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, er
 func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
 	if user, err := orm.FindUser(
 		ctx,
-		common.GetContextDb(ctx),
+		db.GetDbInstance(),
 		id,
 	); err != nil {
 		return nil, err
@@ -186,10 +184,8 @@ func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
 
 // CreateAccount
 func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account, err error) {
-	db := common.GetContextDb(ctx)
-
 	var tx *sql.Tx
-	if tx, err = db.BeginTx(ctx, nil); err != nil {
+	if tx, err = db.GetDbInstance().BeginTx(ctx, nil); err != nil {
 		return nil, err
 	}
 

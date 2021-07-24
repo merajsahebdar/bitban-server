@@ -11,6 +11,7 @@ import (
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/orm"
 )
 
@@ -29,7 +30,7 @@ type adapter struct {
 // newAdapter
 func newAdapter() (*adapter, error) {
 	return &adapter{
-		db: GetDbInstance(),
+		db: db.GetDbInstance(),
 	}, nil
 }
 

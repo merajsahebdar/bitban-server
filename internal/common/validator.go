@@ -10,6 +10,7 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"go.giteam.ir/giteam/internal/conf"
+	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/orm"
 )
 
@@ -66,7 +67,6 @@ func GetValidateInstance() *validator.Validate {
 			// Unique Validation
 
 			ctx := context.Background()
-			db := GetDbInstance()
 
 			v.RegisterValidation("notexistsin", func(fl validator.FieldLevel) bool {
 				param := strings.Fields(fl.Param())
@@ -82,7 +82,7 @@ func GetValidateInstance() *validator.Validate {
 						var exists bool
 						if exists, err = orm.UserEmails(
 							orm.UserEmailWhere.Address.EQ(address),
-						).Exists(ctx, db); err != nil {
+						).Exists(ctx, db.GetDbInstance()); err != nil {
 							panic(err)
 						}
 
