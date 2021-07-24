@@ -2,7 +2,7 @@ package resolver
 
 import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/fault"
 )
 
 // ErrorExtensions
@@ -71,7 +71,7 @@ func ForbiddenErrorFrom(err error) *gqlerror.Error {
 func UserInputErrorFrom(err error) *gqlerror.Error {
 	ext := newUserInputErrorExtensions()
 
-	if errUserInput, ok := err.(common.UserInputError); ok {
+	if errUserInput, ok := err.(fault.UserInputError); ok {
 		ext["errors"] = errUserInput.Errors
 	}
 

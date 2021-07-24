@@ -11,10 +11,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/resolver"
 	"go.giteam.ir/giteam/internal/schema"
+	"go.giteam.ir/giteam/internal/util"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -30,7 +30,7 @@ func newGraphQLQueryHandler(schemaConfig schema.Config) echo.HandlerFunc {
 
 	// Panic Recover Handler
 	queryHandler.SetRecoverFunc(func(ctx context.Context, mayErr interface{}) (userError error) {
-		common.SetResponseStatus(ctx, http.StatusInternalServerError)
+		util.SetResponseStatus(ctx, http.StatusInternalServerError)
 
 		fields := []zapcore.Field{}
 
@@ -74,7 +74,7 @@ var HttpOpt = fx.Options(fx.Provide(newHttp), fx.Invoke(registerHttpLifecycle))
 func newHttp(schemaConfig schema.Config) *echo.Echo {
 	e := echo.New()
 
-	e.Use(common.ContextWrapper())
+	e.Use(util.ContextWrapper())
 	e.Use(middleware.Recover())
 
 	e.POST(graphQLQueryRoute, newGraphQLQueryHandler(schemaConfig))

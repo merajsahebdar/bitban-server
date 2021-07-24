@@ -11,11 +11,11 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.giteam.ir/giteam/internal/auth"
-	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/component"
 	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/dto"
+	"go.giteam.ir/giteam/internal/fault"
 	"go.giteam.ir/giteam/internal/orm"
 	"go.giteam.ir/giteam/internal/util"
 )
@@ -75,7 +75,7 @@ func (f *Account) CheckPermission(obj string, act string) error {
 		obj,
 		act,
 	); err != nil || !ok {
-		return common.ErrForbidden
+		return fault.ErrForbidden
 	}
 
 	return nil
@@ -152,11 +152,11 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 	).Bind(ctx, db.GetDbInstance(), &binder); err != nil {
 		return nil, err
 	} else if binder.User == (orm.User{}) {
-		return nil, common.ErrUserInput
+		return nil, fault.ErrUserInput
 	}
 
 	if binder.User.Password.IsZero() || !util.ComparePassword(binder.User.Password.String, input.Password) {
-		return nil, common.ErrUserInput
+		return nil, fault.ErrUserInput
 	}
 
 	return &Account{

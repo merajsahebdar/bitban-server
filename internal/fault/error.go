@@ -1,4 +1,4 @@
-package common
+package fault
 
 import (
 	"database/sql"

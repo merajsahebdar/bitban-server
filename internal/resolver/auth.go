@@ -3,9 +3,9 @@ package resolver
 import (
 	"context"
 
-	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/dto"
 	"go.giteam.ir/giteam/internal/facade"
+	"go.giteam.ir/giteam/internal/fault"
 )
 
 //
@@ -37,16 +37,16 @@ func createAuthTokensByAccount(account *facade.Account) (string, string) {
 func (r *mutationResolver) SignIn(ctx context.Context, input dto.SignInInput) (*dto.Auth, error) {
 	if err := r.validate.Struct(input); err != nil {
 		return nil, UserInputErrorFrom(
-			common.UserInputErrorFrom(err),
+			fault.UserInputErrorFrom(err),
 		)
 	}
 
 	if account, err := facade.GetAccountByPassword(
 		ctx,
 		input,
-	); common.IsNonUserInputError(err) {
+	); fault.IsNonUserInputError(err) {
 		panic(err)
-	} else if common.IsUserInputError(err) {
+	} else if fault.IsUserInputError(err) {
 		return nil, UserInputErrorFrom(err)
 	} else {
 		_, accessToken := createAuthTokensByAccount(account)
@@ -62,7 +62,7 @@ func (r *mutationResolver) SignIn(ctx context.Context, input dto.SignInInput) (*
 func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*dto.Auth, error) {
 	if err := r.validate.Struct(input); err != nil {
 		return nil, UserInputErrorFrom(
-			common.UserInputErrorFrom(err),
+			fault.UserInputErrorFrom(err),
 		)
 	}
 

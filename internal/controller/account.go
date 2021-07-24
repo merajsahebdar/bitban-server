@@ -6,9 +6,9 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"go.giteam.ir/giteam/internal/auth"
-	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/dto"
 	"go.giteam.ir/giteam/internal/facade"
+	"go.giteam.ir/giteam/internal/fault"
 	"go.uber.org/fx"
 )
 
@@ -20,14 +20,14 @@ type Account struct {
 // GetUser
 //
 // Errors:
-//   - common.Unauthenticated, if the request is not authorized
-//   - common.ErrForbidden, if the authorized user does not have access to the resource
+//   - fault.Unauthenticated, if the request is not authorized
+//   - fault.ErrForbidden, if the authorized user does not have access to the resource
 func (c *Account) GetUser(ctx context.Context, id int64) (*dto.User, error) {
 	//
 	// Check Permission
 
 	if currAccount, err := facade.GetAccountByAccessToken(ctx); err != nil {
-		return nil, common.ErrUnauthenticated
+		return nil, fault.ErrUnauthenticated
 	} else {
 		if err := currAccount.CheckPermission(
 			fmt.Sprintf("/users/%d", id),

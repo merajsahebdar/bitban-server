@@ -1,10 +1,11 @@
-package common
+package util
 
 import (
 	"context"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"go.giteam.ir/giteam/internal/fault"
 )
 
 // echoContextKey Key to access the echo context
@@ -54,10 +55,13 @@ func GetHeader(ctx context.Context, key string) string {
 }
 
 // GetCookie
+//
+// Errors:
+//   - common.ErrMissingCookie in case of not founding the asked cookie
 func GetCookie(ctx context.Context, cookieName string) (cookie *http.Cookie, err error) {
 	ec := getEchoContext(ctx)
 	if cookie, err = ec.Cookie(cookieName); err != nil {
-		return nil, ErrMissingCookie
+		return nil, fault.ErrMissingCookie
 	}
 
 	return cookie, nil

@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/go-redis/redis/v8"
-	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/conf"
 )
 
 // dbLock
@@ -20,8 +20,8 @@ func GetDbInstance() *redis.Client {
 		defer dbLock.Unlock()
 
 		if dbInstance == nil {
-			if opt, err := redis.ParseURL(common.Cog.Redis.Url); err != nil {
-				common.Log.Fatal(err.Error())
+			if opt, err := redis.ParseURL(conf.Cog.Redis.Url); err != nil {
+				conf.Log.Fatal(err.Error())
 			} else {
 				dbInstance = redis.NewClient(opt)
 			}

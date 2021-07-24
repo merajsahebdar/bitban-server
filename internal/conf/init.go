@@ -7,7 +7,6 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
-	"go.giteam.ir/giteam/internal/util"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
@@ -71,7 +70,7 @@ func init() {
 	//
 	// Feed `Cog`
 
-	f, err := util.GetAssetPath("/cog.yaml")
+	f, err := GetAssetPath("/cog.yaml")
 	if err != nil {
 		Log.Fatal(err.Error())
 	}

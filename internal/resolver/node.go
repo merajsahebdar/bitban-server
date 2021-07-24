@@ -3,8 +3,8 @@ package resolver
 import (
 	"context"
 
-	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/dto"
+	"go.giteam.ir/giteam/internal/fault"
 )
 
 // Node
@@ -26,11 +26,11 @@ func (r *queryResolver) Node(ctx context.Context, nIdentifier string) (node dto.
 	}
 
 	switch {
-	case common.IsUnauthenticatedError(err):
+	case fault.IsUnauthenticatedError(err):
 		return nil, AuthenticationErrorFrom(err)
-	case common.IsForbiddenError(err):
+	case fault.IsForbiddenError(err):
 		return nil, ForbiddenErrorFrom(err)
-	case common.IsResourceNotFoundError(err):
+	case fault.IsResourceNotFoundError(err):
 		return nil, NotFoundErrorFrom(err)
 	default:
 		panic(err)

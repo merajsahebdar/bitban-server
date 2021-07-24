@@ -7,8 +7,9 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
-	"go.giteam.ir/giteam/internal/common"
 	"go.giteam.ir/giteam/internal/component"
+	"go.giteam.ir/giteam/internal/fault"
+	"go.giteam.ir/giteam/internal/util"
 )
 
 const (
@@ -21,7 +22,7 @@ const (
 
 // SetRefreshTokenCookie
 func SetRefreshTokenCookie(ctx context.Context, refreshToken string) {
-	common.SetCookie(ctx, &http.Cookie{
+	util.SetCookie(ctx, &http.Cookie{
 		Name:     refreshTokenCookie,
 		Value:    refreshToken,
 		HttpOnly: true,
@@ -37,15 +38,15 @@ func isTokenExpired(claims *jwt.StandardClaims) bool {
 // GetContextRefreshTokenClaims
 //
 // Errors:
-//   - common.ErrInvalidJwtToken
+//   - fault.ErrInvalidJwtToken
 // ErrorsRef:
-//   - common.GetCookie
+//   - util.GetCookie
 func GetContextRefreshTokenClaims(ctx context.Context) (*jwt.StandardClaims, error) {
-	if cookie, err := common.GetCookie(ctx, refreshTokenCookie); err != nil {
+	if cookie, err := util.GetCookie(ctx, refreshTokenCookie); err != nil {
 		return nil, err
 	} else {
 		if claims, err := component.GetJwtInstance().VerifyToken(cookie.Value); err != nil || isTokenExpired(claims) {
-			return nil, common.ErrInvalidJwtToken
+			return nil, fault.ErrInvalidJwtToken
 		} else {
 			return claims, nil
 		}
@@ -55,23 +56,23 @@ func GetContextRefreshTokenClaims(ctx context.Context) (*jwt.StandardClaims, err
 // GetContextAccessTokenClaims
 //
 // Errors:
-//   - common.ErrMissingJwtToken in case of missing jwt token
-//   - common.ErrInvalidJwtToken in case of invalid or expired jwt token
+//   - fault.ErrMissingJwtToken in case of missing jwt token
+//   - fault.ErrInvalidJwtToken in case of invalid or expired jwt token
 func GetContextAccessTokenClaims(ctx context.Context) (*jwt.StandardClaims, error) {
 	var token string
 
-	authorization := common.GetHeader(ctx, echo.HeaderAuthorization)
+	authorization := util.GetHeader(ctx, echo.HeaderAuthorization)
 	schemeLength := len(authHeaderScheme)
 	if len(authorization) > schemeLength+1 && authorization[:schemeLength] == authHeaderScheme {
 		token = authorization[schemeLength+1:]
 	}
 
 	if token == "" {
-		return nil, common.ErrMissingJwtToken
+		return nil, fault.ErrMissingJwtToken
 	}
 
 	if claims, err := component.GetJwtInstance().VerifyToken(token); err != nil || isTokenExpired(claims) {
-		return nil, common.ErrInvalidJwtToken
+		return nil, fault.ErrInvalidJwtToken
 	} else {
 		return claims, nil
 	}
