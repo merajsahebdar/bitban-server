@@ -20,6 +20,9 @@ var Cog struct {
 	Amqp struct {
 		Uri string `yaml:"uri"`
 	} `yaml:"amqp"`
+	Redis struct {
+		Url string `yaml:"url"`
+	}
 	Jwt struct {
 		PublicKey  string `yaml:"publicKey"`
 		PrivateKey string `yaml:"privateKey"`

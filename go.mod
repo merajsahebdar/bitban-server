@@ -15,6 +15,8 @@ require (
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator/v10 v10.7.0
+	github.com/go-redis/cache/v8 v8.4.1
+	github.com/go-redis/redis/v8 v8.11.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/labstack/echo/v4 v4.3.0
 	github.com/lib/pq v1.10.2

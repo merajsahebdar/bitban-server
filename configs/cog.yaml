@@ -13,6 +13,9 @@ database:
 amqp:
   uri: ${AMPQ_URI}
 
+redis:
+  url: ${REDIS_URL}
+
 security:
   accessTokenExpiresAt: 60
   refreshTokenExpiresAt: 259200
