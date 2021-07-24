@@ -11,6 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/markbates/pkger"
 	migrate "github.com/rubenv/sql-migrate"
+	"go.giteam.ir/giteam/internal/conf"
 	"go.uber.org/zap"
 )
 
@@ -31,15 +32,15 @@ func GetContextDb(ctx context.Context) *sql.DB {
 func connectToDatabase() *sql.DB {
 	dsn := fmt.Sprintf(
 		"host=%s port=%d dbname=%s user=%s password=%s sslmode=disable",
-		Cog.Database.Host,
-		Cog.Database.Port,
-		Cog.Database.Dbname,
-		Cog.Database.User,
-		Cog.Database.Pass,
+		conf.Cog.Database.Host,
+		conf.Cog.Database.Port,
+		conf.Cog.Database.Dbname,
+		conf.Cog.Database.User,
+		conf.Cog.Database.Pass,
 	)
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		Log.Fatal("failed to open the database", zap.String("error", err.Error()))
+		conf.Log.Fatal("failed to open the database", zap.String("error", err.Error()))
 	}
 
 	// Time to continue retrying
@@ -48,14 +49,14 @@ func connectToDatabase() *sql.DB {
 	err = backoff.Retry(func() error {
 		err = db.Ping()
 		if err != nil {
-			Log.Warn("failed to establish a database connection, will attempt again...")
+			conf.Log.Warn("failed to establish a database connection, will attempt again...")
 		}
 
 		return err
 	}, NewExponentialBackoff(duration))
 
 	if err != nil {
-		Log.Fatal("failed to establish a database connection", zap.Duration("backoff", duration), zap.String("error", err.Error()))
+		conf.Log.Fatal("failed to establish a database connection", zap.Duration("backoff", duration), zap.String("error", err.Error()))
 	}
 
 	return db

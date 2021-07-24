@@ -5,6 +5,7 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
+	"go.giteam.ir/giteam/internal/conf"
 	"go.uber.org/zap"
 )
 
@@ -55,12 +56,12 @@ func newEnforcer() *casbin.Enforcer {
 	[matchers]
 	m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && keyMatch(r.obj, p.obj) && regexMatch(r.act, p.act)
 	`); err != nil {
-		Log.Fatal("failed to initialize casbin model", zap.Error(err))
+		conf.Log.Fatal("failed to initialize casbin model", zap.Error(err))
 	}
 
 	var a Adapter
 	if a, err = newAdapter(); err != nil {
-		Log.Fatal("failed to initialize casbin adapter", zap.Error(err))
+		conf.Log.Fatal("failed to initialize casbin adapter", zap.Error(err))
 	}
 
 	//
@@ -68,7 +69,7 @@ func newEnforcer() *casbin.Enforcer {
 
 	var e *casbin.Enforcer
 	if e, err = casbin.NewEnforcer(m, a); err != nil {
-		Log.Fatal("failed to initialize casbin enforcer", zap.Error(err))
+		conf.Log.Fatal("failed to initialize casbin enforcer", zap.Error(err))
 	}
 
 	e.LoadPolicy()

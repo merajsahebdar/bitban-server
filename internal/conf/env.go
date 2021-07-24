@@ -1,4 +1,4 @@
-package common
+package conf
 
 // EnvType Represents types for the current running environment.
 type EnvType int

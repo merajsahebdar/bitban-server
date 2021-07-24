@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/dgrijalva/jwt-go"
+	"go.giteam.ir/giteam/internal/conf"
 )
 
 // Jwt
@@ -63,27 +64,27 @@ func GetJwtInstance() *Jwt {
 			var err error
 			var publicPEM, privatePEM []byte
 
-			if publicPEM, err = base64.StdEncoding.DecodeString(Cog.Jwt.PublicKey); err != nil {
-				Log.Fatal("failed to decode jwt public key")
+			if publicPEM, err = base64.StdEncoding.DecodeString(conf.Cog.Jwt.PublicKey); err != nil {
+				conf.Log.Fatal("failed to decode jwt public key")
 			}
 
-			if privatePEM, err = base64.StdEncoding.DecodeString(Cog.Jwt.PrivateKey); err != nil {
-				Log.Fatal("failed to decode jwt private key")
+			if privatePEM, err = base64.StdEncoding.DecodeString(conf.Cog.Jwt.PrivateKey); err != nil {
+				conf.Log.Fatal("failed to decode jwt private key")
 			}
 
 			publicKey, err := jwt.ParseRSAPublicKeyFromPEM(
 				publicPEM,
 			)
 			if err != nil {
-				Log.Fatal("failed to parse jwt public key")
+				conf.Log.Fatal("failed to parse jwt public key")
 			}
 
 			privateKey, err := jwt.ParseRSAPrivateKeyFromPEMWithPassword(
 				privatePEM,
-				Cog.Jwt.Passphrase,
+				conf.Cog.Jwt.Passphrase,
 			)
 			if err != nil {
-				Log.Fatal("failed to parse jwt private key")
+				conf.Log.Fatal("failed to parse jwt private key")
 			}
 
 			jwtInstance = &Jwt{

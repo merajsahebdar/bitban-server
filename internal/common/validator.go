@@ -9,6 +9,7 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
+	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/orm"
 )
 
@@ -29,7 +30,7 @@ func GetValidateInstance() *validator.Validate {
 
 		if validateInstance == nil {
 			v := validator.New()
-			en_translations.RegisterDefaultTranslations(v, EnTrans)
+			en_translations.RegisterDefaultTranslations(v, conf.EnTrans)
 
 			//
 			// Phone Number Validation
@@ -37,7 +38,7 @@ func GetValidateInstance() *validator.Validate {
 			if compiled, err := regexp.Compile(
 				`(0|\+98)?([ ]|-|[()]){0,2}9[1|2|3|4]([ ]|-|[()]){0,2}(?:[0-9]([ ]|-|[()]){0,2}){8}`,
 			); err != nil {
-				Log.Fatal(err.Error())
+				conf.Log.Fatal(err.Error())
 			} else {
 				phoneRegexp = compiled
 			}
@@ -51,7 +52,7 @@ func GetValidateInstance() *validator.Validate {
 				return false
 			})
 
-			v.RegisterTranslation("phone", EnTrans, func(ut ut.Translator) error {
+			v.RegisterTranslation("phone", conf.EnTrans, func(ut ut.Translator) error {
 				return ut.Add("phone", "{0} must be a valid phone number", true)
 			}, func(ut ut.Translator, fe validator.FieldError) string {
 				if t, err := ut.T("phone"); err != nil {
@@ -92,7 +93,7 @@ func GetValidateInstance() *validator.Validate {
 				panic("validator is not registered completely")
 			})
 
-			v.RegisterTranslation("notexistsin", EnTrans, func(ut ut.Translator) error {
+			v.RegisterTranslation("notexistsin", conf.EnTrans, func(ut ut.Translator) error {
 				return ut.Add("notexistsin", "{0} must be unique", true)
 			}, func(ut ut.Translator, fe validator.FieldError) string {
 				if t, err := ut.T(

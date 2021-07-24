@@ -7,6 +7,7 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 	"go.giteam.ir/giteam/api"
 	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/controller"
 	"go.giteam.ir/giteam/internal/resolver"
 	"go.uber.org/fx"
@@ -23,13 +24,13 @@ func (cmd *MigrateUpCmd) Run() error {
 	migrate.SetTable("migrations")
 	appliedCount, err := migrate.Exec(db, "postgres", common.GetMigration(), migrate.Up)
 	if err != nil {
-		common.Log.Fatal("failed to apply migrations", zap.String("error", err.Error()))
+		conf.Log.Fatal("failed to apply migrations", zap.String("error", err.Error()))
 	}
 
 	if appliedCount > 0 {
-		common.Log.Info("migrations just applied", zap.Int("appliedCount", appliedCount))
+		conf.Log.Info("migrations just applied", zap.Int("appliedCount", appliedCount))
 	} else {
-		common.Log.Info("there are no migrations to apply")
+		conf.Log.Info("there are no migrations to apply")
 	}
 
 	return nil
@@ -45,13 +46,13 @@ func (cmd *MigrateDownCmd) Run() error {
 	migrate.SetTable("migrations")
 	droppedCount, err := migrate.Exec(db, "postgres", common.GetMigration(), migrate.Down)
 	if err != nil {
-		common.Log.Fatal("failed to drop migrations", zap.String("error", err.Error()))
+		conf.Log.Fatal("failed to drop migrations", zap.String("error", err.Error()))
 	}
 
 	if droppedCount > 0 {
-		common.Log.Info("migrations just dropped", zap.Int("droppedCount", droppedCount))
+		conf.Log.Info("migrations just dropped", zap.Int("droppedCount", droppedCount))
 	} else {
-		common.Log.Info("there are no migrations to drop")
+		conf.Log.Info("there are no migrations to drop")
 	}
 
 	return nil
@@ -64,7 +65,7 @@ type RunCmd struct {
 
 // Run Starts the app.
 func (cmd *RunCmd) Run() error {
-	common.Log.Info("starting...", zap.Int("pid", os.Getpid()))
+	conf.Log.Info("starting...", zap.Int("pid", os.Getpid()))
 
 	// Provide app dependincies.
 	opts := []fx.Option{
@@ -103,6 +104,6 @@ var CLI struct {
 // main
 func main() {
 	if err := kong.Parse(&CLI).Run(&CLI); err != nil {
-		common.Log.Fatal(err.Error())
+		conf.Log.Fatal(err.Error())
 	}
 }

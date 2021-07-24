@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/resolver"
 	"go.giteam.ir/giteam/internal/schema"
 	"go.uber.org/fx"
@@ -40,13 +41,13 @@ func newGraphQLQueryHandler(schemaConfig schema.Config) echo.HandlerFunc {
 			fields = append(fields, zap.String("error", err))
 		}
 
-		common.Log.Error("got a panic error when processing an api request", fields...)
+		conf.Log.Error("got a panic error when processing an api request", fields...)
 
 		return resolver.InternalServerErrorFrom(nil)
 	})
 
 	// Enable tracing in development mode.
-	if common.CurrentEnv == common.Dev {
+	if conf.CurrentEnv == conf.Dev {
 		queryHandler.Use(apollotracing.Tracer{})
 	}
 
@@ -79,7 +80,7 @@ func newHttp(schemaConfig schema.Config) *echo.Echo {
 	e.POST(graphQLQueryRoute, newGraphQLQueryHandler(schemaConfig))
 
 	// Register playground just in development mode.
-	if common.CurrentEnv == common.Dev {
+	if conf.CurrentEnv == conf.Dev {
 		e.GET("/playground", newGraphQLPlaygroundHandler())
 	}
 
@@ -93,17 +94,17 @@ func registerHttpLifecycle(lifecycle fx.Lifecycle, e *echo.Echo) {
 
 	lifecycle.Append(fx.Hook{
 		OnStart: func(ctx context.Context) (err error) {
-			addr := fmt.Sprintf("%s:%d", common.Cog.App.Host, common.Cog.App.Port)
+			addr := fmt.Sprintf("%s:%d", conf.Cog.App.Host, conf.Cog.App.Port)
 
 			if e.Listener, err = net.Listen("tcp", addr); err != nil {
-				common.Log.Fatal("cannot start the http listener", zap.Error(err))
+				conf.Log.Fatal("cannot start the http listener", zap.Error(err))
 			}
 
-			common.Log.Info("ready to respond http requests...", zap.String("addr", addr))
+			conf.Log.Info("ready to respond http requests...", zap.String("addr", addr))
 
 			go func() {
 				if err := e.Start(addr); err != nil {
-					common.Log.Fatal("cannot start the http server", zap.Error(err))
+					conf.Log.Fatal("cannot start the http server", zap.Error(err))
 				}
 			}()
 

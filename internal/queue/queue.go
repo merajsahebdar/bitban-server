@@ -5,7 +5,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-amqp/pkg/amqp"
-	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/conf"
 )
 
 // Queue
@@ -27,7 +27,7 @@ func getQueueInstance() *Queue {
 		defer queueLock.Unlock()
 
 		if queueInstance == nil {
-			config := amqp.NewDurableQueueConfig(common.Cog.Amqp.Uri)
+			config := amqp.NewDurableQueueConfig(conf.Cog.Amqp.Uri)
 
 			var err error
 
@@ -36,7 +36,7 @@ func getQueueInstance() *Queue {
 				config,
 				watermill.NopLogger{},
 			); err != nil {
-				common.Log.Fatal(err.Error())
+				conf.Log.Fatal(err.Error())
 			}
 
 			var publisher *amqp.Publisher
@@ -44,7 +44,7 @@ func getQueueInstance() *Queue {
 				config,
 				watermill.NopLogger{},
 			); err != nil {
-				common.Log.Fatal(err.Error())
+				conf.Log.Fatal(err.Error())
 			}
 
 			queueInstance = &Queue{

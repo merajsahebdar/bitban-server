@@ -1,4 +1,4 @@
-package common
+package conf
 
 import (
 	"github.com/go-playground/locales"

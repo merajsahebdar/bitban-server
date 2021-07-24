@@ -11,6 +11,7 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/dto"
 	"go.giteam.ir/giteam/internal/orm"
 )
@@ -78,7 +79,7 @@ func (f *Account) CreateAccessToken() (accessToken string, err error) {
 		Subject:  dto.ToNodeIdentifier(dto.UserNodeType, f.user.ID),
 		IssuedAt: currTime.Unix(),
 		ExpiresAt: currTime.Add(
-			time.Duration(common.Cog.Security.AccessTokenExpiresAt) * time.Minute,
+			time.Duration(conf.Cog.Security.AccessTokenExpiresAt) * time.Minute,
 		).Unix(),
 	}
 
@@ -101,7 +102,7 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 
 	currTime := time.Now().In(time.UTC)
 	expiresAt := currTime.Add(
-		time.Duration(common.Cog.Security.RefreshTokenExpiresAt) * time.Minute,
+		time.Duration(conf.Cog.Security.RefreshTokenExpiresAt) * time.Minute,
 	)
 	claims := &jwt.StandardClaims{
 		Id:        dto.ToNodeIdentifier(dto.UserTokenNodeType, userToken.ID),

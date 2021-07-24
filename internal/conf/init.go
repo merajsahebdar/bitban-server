@@ -1,4 +1,4 @@
-package common
+package conf
 
 import (
 	"io/ioutil"
@@ -7,6 +7,7 @@ import (
 	"github.com/creasty/defaults"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
+	"go.giteam.ir/giteam/internal/util"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
@@ -70,7 +71,7 @@ func init() {
 	//
 	// Feed `Cog`
 
-	f, err := GetAssetPath("/cog.yaml")
+	f, err := util.GetAssetPath("/cog.yaml")
 	if err != nil {
 		Log.Fatal(err.Error())
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/go-playground/validator/v10"
+	"go.giteam.ir/giteam/internal/conf"
 )
 
 var (
@@ -55,7 +56,7 @@ func UserInputErrorFrom(err error) UserInputError {
 			ret.AddError(
 				err.Namespace(),
 				err.Tag(),
-				err.Translate(EnTrans),
+				err.Translate(conf.EnTrans),
 			)
 		}
 	}

@@ -6,7 +6,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
-	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/queue"
 	"go.uber.org/fx"
 )
@@ -22,7 +22,7 @@ func newPoisonHandler() (mid message.HandlerMiddleware) {
 		queue.GetPublisherInstance(),
 		"poisons",
 	); err != nil {
-		common.Log.Fatal(err.Error())
+		conf.Log.Fatal(err.Error())
 	}
 
 	return mid
@@ -37,7 +37,7 @@ func newQueue() *message.Router {
 		message.RouterConfig{},
 		watermill.NopLogger{},
 	); err != nil {
-		common.Log.Fatal(err.Error())
+		conf.Log.Fatal(err.Error())
 	}
 
 	router.AddMiddleware(
@@ -54,12 +54,12 @@ func registerQueueLifecycle(lc fx.Lifecycle, r *message.Router) {
 
 			go func() {
 				if err := r.Run(context.Background()); err != nil {
-					common.Log.Fatal(err.Error())
+					conf.Log.Fatal(err.Error())
 				}
 			}()
 			<-r.Running()
 
-			common.Log.Info("queue router is running...")
+			conf.Log.Info("queue router is running...")
 
 			return nil
 		},
