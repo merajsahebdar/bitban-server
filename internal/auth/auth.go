@@ -8,6 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
 	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/component"
 )
 
 const (
@@ -43,7 +44,7 @@ func GetContextRefreshTokenClaims(ctx context.Context) (*jwt.StandardClaims, err
 	if cookie, err := common.GetCookie(ctx, refreshTokenCookie); err != nil {
 		return nil, err
 	} else {
-		if claims, err := common.GetJwtInstance().VerifyToken(cookie.Value); err != nil || isTokenExpired(claims) {
+		if claims, err := component.GetJwtInstance().VerifyToken(cookie.Value); err != nil || isTokenExpired(claims) {
 			return nil, common.ErrInvalidJwtToken
 		} else {
 			return claims, nil
@@ -69,7 +70,7 @@ func GetContextAccessTokenClaims(ctx context.Context) (*jwt.StandardClaims, erro
 		return nil, common.ErrMissingJwtToken
 	}
 
-	if claims, err := common.GetJwtInstance().VerifyToken(token); err != nil || isTokenExpired(claims) {
+	if claims, err := component.GetJwtInstance().VerifyToken(token); err != nil || isTokenExpired(claims) {
 		return nil, common.ErrInvalidJwtToken
 	} else {
 		return claims, nil

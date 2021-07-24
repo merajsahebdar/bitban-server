@@ -12,11 +12,17 @@ import (
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"go.giteam.ir/giteam/internal/auth"
 	"go.giteam.ir/giteam/internal/common"
+	"go.giteam.ir/giteam/internal/component"
 	"go.giteam.ir/giteam/internal/conf"
 	"go.giteam.ir/giteam/internal/db"
 	"go.giteam.ir/giteam/internal/dto"
 	"go.giteam.ir/giteam/internal/orm"
+	"go.giteam.ir/giteam/internal/util"
 )
+
+//
+// TODO: move token signing into auth package
+//
 
 // defaultDomain
 const defaultDomain = "_"
@@ -77,7 +83,7 @@ func (f *Account) CheckPermission(obj string, act string) error {
 
 // CreateAccessToken
 func (f *Account) CreateAccessToken() (accessToken string, err error) {
-	comp := common.GetJwtInstance()
+	comp := component.GetJwtInstance()
 
 	currTime := time.Now().In(time.UTC)
 	claims := &jwt.StandardClaims{
@@ -94,7 +100,7 @@ func (f *Account) CreateAccessToken() (accessToken string, err error) {
 
 // CreateRefreshToken
 func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
-	comp := common.GetJwtInstance()
+	comp := component.GetJwtInstance()
 
 	userToken := &orm.UserToken{
 		Meta:   []byte(`{}`),
@@ -149,7 +155,7 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 		return nil, common.ErrUserInput
 	}
 
-	if binder.User.Password.IsZero() || !common.ComparePassword(binder.User.Password.String, input.Password) {
+	if binder.User.Password.IsZero() || !util.ComparePassword(binder.User.Password.String, input.Password) {
 		return nil, common.ErrUserInput
 	}
 
@@ -203,7 +209,7 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	// Create User
 
 	var hashedPassword string
-	if hashedPassword, err = common.HashPassword(input.Password); err != nil {
+	if hashedPassword, err = util.HashPassword(input.Password); err != nil {
 		return nil, err
 	}
 
