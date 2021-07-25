@@ -8,7 +8,7 @@ MIGRATIONS_DIR:=$(ROOT_DIR)/migrations
 .PHONY: build
 
 # Build Folio Binary
-build: clean pkger datasource
+build: clean pkger orm
 	go build -o giteam
 
 pkger:
