@@ -76,6 +76,7 @@ func (cmd *RunCmd) Run() error {
 		api.HttpOpt,
 		// API Services
 		service.GraphQLOpt,
+		service.GitOpt,
 	}
 
 	// Provide fx.NopLogger if it is not running in verbose mode.

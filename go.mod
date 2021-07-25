@@ -12,6 +12,8 @@ require (
 	github.com/creasty/defaults v1.5.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/friendsofgo/errors v0.9.2
+	github.com/go-git/go-billy/v5 v5.3.1
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator/v10 v10.7.0
