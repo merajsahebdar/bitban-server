@@ -1,4 +1,4 @@
-package service
+package api
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 	"regeet.io/api/internal/app/ssh"
 	"regeet.io/api/internal/conf"
 	"regeet.io/api/internal/facade"
@@ -93,26 +92,11 @@ func (s *gitService) UploadPack(ec echo.Context) error {
 	return nil
 }
 
-// GitOpt
-var GitOpt = fx.Options(ssh.SshOpt, fx.Invoke(registerGitHandlers))
+// SshOpt
+var SshOpt = fx.Invoke(registerSshLifecycle)
 
-// registerGitHandlers
-func registerGitHandlers(lc fx.Lifecycle, ee *echo.Echo, ssh *ssh.Ssh) {
-	svc := &gitService{}
-
-	//
-	// Repository Handlers
-
-	eg := ee.Group("/-/:name", func(hf echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			conf.Log.Info("got a git client request", zap.String("path", c.Request().URL.Path), zap.String("query", c.Request().URL.RawQuery))
-			return hf(c)
-		}
-	})
-	eg.GET("/info/refs", svc.InfoRefs)
-	eg.POST("/git-receive-pack", svc.ReceivePack)
-	eg.POST("/git-upload-pack", svc.UploadPack)
-
+// registerSshLifecycle
+func registerSshLifecycle(lc fx.Lifecycle, ee *echo.Echo, ssh *ssh.Ssh) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			var err error

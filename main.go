@@ -7,12 +7,12 @@ import (
 	migrate "github.com/rubenv/sql-migrate"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"regeet.io/api/api"
+	"regeet.io/api/internal/app/api"
+	"regeet.io/api/internal/app/ssh"
 	"regeet.io/api/internal/conf"
 	"regeet.io/api/internal/controller"
 	"regeet.io/api/internal/db"
 	"regeet.io/api/internal/resolver"
-	"regeet.io/api/internal/service"
 )
 
 // MigrateUpCmd
@@ -66,6 +66,7 @@ func (cmd *RunCmd) Run() error {
 
 	// Provide app dependincies.
 	opts := []fx.Option{
+		ssh.SshOpt,
 		// Queues
 		// Controllers
 		controller.AccountOpt,
@@ -73,10 +74,8 @@ func (cmd *RunCmd) Run() error {
 		resolver.ConfigOpt,
 		// APIs
 		api.QueueOpt,
-		api.HttpOpt,
-		// API Services
-		service.GraphQLOpt,
-		service.GitOpt,
+		api.EchoOpt,
+		api.SshOpt,
 	}
 
 	// Provide fx.NopLogger if it is not running in verbose mode.
