@@ -21,10 +21,10 @@ import (
 )
 
 // EchoOpt
-var EchoOpt = fx.Options(fx.Provide(newEcho), fx.Invoke(registerEchoLifecycle))
+var EchoOpt = fx.Invoke(registerEchoLifecycle)
 
-// newEcho
-func newEcho(schemaConfig schema.Config) *echo.Echo {
+// registerEchoLifecycle
+func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config) {
 	ee := echo.New()
 	ee.Use(util.ContextWrapper())
 	ee.Use(middleware.Recover())
@@ -88,26 +88,21 @@ func newEcho(schemaConfig schema.Config) *echo.Echo {
 		})
 	}
 
-	return ee
-}
-
-// registerEchoLifecycle
-func registerEchoLifecycle(lc fx.Lifecycle, e *echo.Echo) {
-	e.HideBanner = true
-	e.HidePort = true
+	ee.HideBanner = true
+	ee.HidePort = true
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) (err error) {
 			addr := fmt.Sprintf("%s:%d", conf.Cog.App.Host, conf.Cog.App.Port)
 
-			if e.Listener, err = net.Listen("tcp", addr); err != nil {
+			if ee.Listener, err = net.Listen("tcp", addr); err != nil {
 				conf.Log.Fatal("cannot start the http listener", zap.Error(err))
 			}
 
 			conf.Log.Info("ready to respond http requests...", zap.String("addr", addr))
 
 			go func() {
-				if err := e.Start(addr); err != nil {
+				if err := ee.Start(addr); err != nil {
 					conf.Log.Fatal("cannot start the http server", zap.Error(err))
 				}
 			}()

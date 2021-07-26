@@ -93,10 +93,10 @@ func (s *gitService) UploadPack(ec echo.Context) error {
 }
 
 // SshOpt
-var SshOpt = fx.Invoke(registerSshLifecycle)
+var SshOpt = fx.Invoke(registerSshServerLifecycle)
 
-// registerSshLifecycle
-func registerSshLifecycle(lc fx.Lifecycle, ee *echo.Echo, ssh *ssh.Ssh) {
+// registerSshServerLifecycle
+func registerSshServerLifecycle(lc fx.Lifecycle, srv *ssh.Server) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			var err error
@@ -107,9 +107,7 @@ func registerSshLifecycle(lc fx.Lifecycle, ee *echo.Echo, ssh *ssh.Ssh) {
 			}
 
 			go func() {
-				ssh.ListenAndServe(listener, func() error {
-					return nil
-				})
+				srv.ListenAndServe(listener)
 			}()
 
 			return nil

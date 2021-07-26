@@ -66,7 +66,7 @@ func (cmd *RunCmd) Run() error {
 
 	// Provide app dependincies.
 	opts := []fx.Option{
-		ssh.SshOpt,
+		ssh.ServerOpt,
 		// Queues
 		// Controllers
 		controller.AccountOpt,
