@@ -1,10 +1,10 @@
 package resolver
 
 import (
-	"go.giteam.ir/giteam/internal/component"
-	"go.giteam.ir/giteam/internal/controller"
-	"go.giteam.ir/giteam/internal/schema"
 	"go.uber.org/fx"
+	"regeet.io/api/internal/component"
+	"regeet.io/api/internal/controller"
+	"regeet.io/api/internal/schema"
 )
 
 // ConfigOpt

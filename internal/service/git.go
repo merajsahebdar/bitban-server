@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"go.giteam.ir/giteam/internal/conf"
-	"go.giteam.ir/giteam/internal/facade"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/facade"
 )
 
 // gitService

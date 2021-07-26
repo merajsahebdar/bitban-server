@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/dgrijalva/jwt-go"
-	"go.giteam.ir/giteam/internal/conf"
+	"regeet.io/api/internal/conf"
 )
 
 // Jwt

@@ -3,9 +3,9 @@ package resolver
 import (
 	"context"
 
-	"go.giteam.ir/giteam/internal/dto"
-	"go.giteam.ir/giteam/internal/facade"
-	"go.giteam.ir/giteam/internal/fault"
+	"regeet.io/api/internal/dto"
+	"regeet.io/api/internal/facade"
+	"regeet.io/api/internal/fault"
 )
 
 //

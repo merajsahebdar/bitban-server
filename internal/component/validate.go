@@ -9,9 +9,9 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
-	"go.giteam.ir/giteam/internal/conf"
-	"go.giteam.ir/giteam/internal/db"
-	"go.giteam.ir/giteam/internal/orm"
+	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/db"
+	"regeet.io/api/internal/orm"
 )
 
 // phoneRegexp

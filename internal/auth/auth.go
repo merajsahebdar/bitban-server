@@ -7,9 +7,9 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
-	"go.giteam.ir/giteam/internal/component"
-	"go.giteam.ir/giteam/internal/fault"
-	"go.giteam.ir/giteam/internal/util"
+	"regeet.io/api/internal/component"
+	"regeet.io/api/internal/fault"
+	"regeet.io/api/internal/util"
 )
 
 const (

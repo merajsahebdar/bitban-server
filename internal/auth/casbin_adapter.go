@@ -11,8 +11,8 @@ import (
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"go.giteam.ir/giteam/internal/db"
-	"go.giteam.ir/giteam/internal/orm"
+	"regeet.io/api/internal/db"
+	"regeet.io/api/internal/orm"
 )
 
 // Adapter

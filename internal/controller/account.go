@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/casbin/casbin/v2"
-	"go.giteam.ir/giteam/internal/auth"
-	"go.giteam.ir/giteam/internal/dto"
-	"go.giteam.ir/giteam/internal/facade"
-	"go.giteam.ir/giteam/internal/fault"
 	"go.uber.org/fx"
+	"regeet.io/api/internal/auth"
+	"regeet.io/api/internal/dto"
+	"regeet.io/api/internal/facade"
+	"regeet.io/api/internal/fault"
 )
 
 // Account

@@ -9,7 +9,7 @@ MIGRATIONS_DIR:=$(ROOT_DIR)/migrations
 
 # Build Folio Binary
 build: clean pkger orm
-	go build -o giteam
+	go build -o regeet
 
 pkger:
 	rm -f pkged.go
@@ -17,7 +17,7 @@ pkger:
 
 # Clean-Up
 clean:
-	rm -f giteam
+	rm -f regeet
 
 # Generate ORM
 orm:

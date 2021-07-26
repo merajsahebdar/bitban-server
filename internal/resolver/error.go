@@ -2,7 +2,7 @@ package resolver
 
 import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"go.giteam.ir/giteam/internal/fault"
+	"regeet.io/api/internal/fault"
 )
 
 // ErrorExtensions

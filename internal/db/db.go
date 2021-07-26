@@ -10,9 +10,9 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/markbates/pkger"
 	migrate "github.com/rubenv/sql-migrate"
-	"go.giteam.ir/giteam/internal/conf"
-	"go.giteam.ir/giteam/internal/util"
 	"go.uber.org/zap"
+	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/util"
 )
 
 // connectToDatabase Tries to make a connection to the database.

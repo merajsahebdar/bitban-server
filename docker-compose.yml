@@ -5,7 +5,7 @@ version: "3.8"
 services:
   # PostgreSQL
   postgres:
-    container_name: giteam-postgres
+    container_name: regeet-postgres
     image: postgres:13
     environment:
       POSTGRES_USER: root
@@ -19,7 +19,7 @@ services:
         target: /var/lib/postgresql/data/pgdata
   # AMQP
   amqp:
-    container_name: giteam-amqp
+    container_name: regeet-amqp
     image: rabbitmq:3.8
     ports:
       - 5672:5672
@@ -29,19 +29,19 @@ services:
         target: /var/lib/rabbitmq
   # Cache
   cache:
-    container_name: giteam-cache
+    container_name: regeet-cache
     image: redis:5
     ports:
       - 6379:6379
 
 networks:
   default:
-    name: giteam
+    name: regeet
 
 volumes:
   # PostgreSQL Data
   postgres:
-    name: giteam-postgres
+    name: regeet-postgres
   # AMQP Data
   amqp:
-    name: giteam-amqp
+    name: regeet-amqp

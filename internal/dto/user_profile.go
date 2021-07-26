@@ -1,6 +1,6 @@
 package dto
 
-import "go.giteam.ir/giteam/internal/orm"
+import "regeet.io/api/internal/orm"
 
 // UserProfile
 type UserProfile struct {

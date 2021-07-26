@@ -8,13 +8,13 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/labstack/echo/v4"
-	"go.giteam.ir/giteam/internal/conf"
-	"go.giteam.ir/giteam/internal/resolver"
-	"go.giteam.ir/giteam/internal/schema"
-	"go.giteam.ir/giteam/internal/util"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/resolver"
+	"regeet.io/api/internal/schema"
+	"regeet.io/api/internal/util"
 )
 
 // GraphQLOpt

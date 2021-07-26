@@ -16,7 +16,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/server"
 	"github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
-	"go.giteam.ir/giteam/internal/conf"
+	"regeet.io/api/internal/conf"
 )
 
 // Repo

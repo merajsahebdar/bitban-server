@@ -2,8 +2,8 @@ package resolver
 
 import (
 	"github.com/go-playground/validator/v10"
-	"go.giteam.ir/giteam/internal/controller"
-	"go.giteam.ir/giteam/internal/schema"
+	"regeet.io/api/internal/controller"
+	"regeet.io/api/internal/schema"
 )
 
 type (

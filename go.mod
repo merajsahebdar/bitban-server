@@ -1,4 +1,4 @@
-module go.giteam.ir/giteam
+module regeet.io/api
 
 go 1.16
 

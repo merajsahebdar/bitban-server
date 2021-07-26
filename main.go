@@ -5,14 +5,14 @@ import (
 
 	"github.com/alecthomas/kong"
 	migrate "github.com/rubenv/sql-migrate"
-	"go.giteam.ir/giteam/api"
-	"go.giteam.ir/giteam/internal/conf"
-	"go.giteam.ir/giteam/internal/controller"
-	"go.giteam.ir/giteam/internal/db"
-	"go.giteam.ir/giteam/internal/resolver"
-	"go.giteam.ir/giteam/internal/service"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+	"regeet.io/api/api"
+	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/controller"
+	"regeet.io/api/internal/db"
+	"regeet.io/api/internal/resolver"
+	"regeet.io/api/internal/service"
 )
 
 // MigrateUpCmd

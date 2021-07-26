@@ -9,7 +9,7 @@ import (
 func GetAssetPath(asset string) (string, error) {
 	dirs := []string{
 		"./configs",
-		"/etc/giteam",
+		"/etc/regeet",
 	}
 
 	for _, dir := range dirs {

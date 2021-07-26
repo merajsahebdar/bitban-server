@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/volatiletech/null/v8"
-	"go.giteam.ir/giteam/internal/orm"
+	"regeet.io/api/internal/orm"
 )
 
 const (

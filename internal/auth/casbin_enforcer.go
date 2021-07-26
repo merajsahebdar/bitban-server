@@ -5,8 +5,8 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
-	"go.giteam.ir/giteam/internal/conf"
 	"go.uber.org/zap"
+	"regeet.io/api/internal/conf"
 )
 
 // enforcerLock

@@ -3,7 +3,7 @@ package resolver
 import (
 	"context"
 
-	"go.giteam.ir/giteam/internal/dto"
+	"regeet.io/api/internal/dto"
 )
 
 // Profile

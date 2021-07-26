@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/go-playground/validator/v10"
-	"go.giteam.ir/giteam/internal/conf"
+	"regeet.io/api/internal/conf"
 )
 
 var (

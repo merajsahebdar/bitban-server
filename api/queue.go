@@ -6,9 +6,9 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
-	"go.giteam.ir/giteam/internal/conf"
-	"go.giteam.ir/giteam/internal/queue"
 	"go.uber.org/fx"
+	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/queue"
 )
 
 // QueueOpt

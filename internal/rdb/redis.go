@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/go-redis/redis/v8"
-	"go.giteam.ir/giteam/internal/conf"
+	"regeet.io/api/internal/conf"
 )
 
 // dbLock

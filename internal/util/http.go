@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"go.giteam.ir/giteam/internal/fault"
+	"regeet.io/api/internal/fault"
 )
 
 // echoContextKey Key to access the echo context

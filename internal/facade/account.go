@@ -10,14 +10,14 @@ import (
 	"github.com/volatiletech/null/v8"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"go.giteam.ir/giteam/internal/auth"
-	"go.giteam.ir/giteam/internal/component"
-	"go.giteam.ir/giteam/internal/conf"
-	"go.giteam.ir/giteam/internal/db"
-	"go.giteam.ir/giteam/internal/dto"
-	"go.giteam.ir/giteam/internal/fault"
-	"go.giteam.ir/giteam/internal/orm"
-	"go.giteam.ir/giteam/internal/util"
+	"regeet.io/api/internal/auth"
+	"regeet.io/api/internal/component"
+	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/db"
+	"regeet.io/api/internal/dto"
+	"regeet.io/api/internal/fault"
+	"regeet.io/api/internal/orm"
+	"regeet.io/api/internal/util"
 )
 
 //

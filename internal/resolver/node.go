@@ -3,8 +3,8 @@ package resolver
 import (
 	"context"
 
-	"go.giteam.ir/giteam/internal/dto"
-	"go.giteam.ir/giteam/internal/fault"
+	"regeet.io/api/internal/dto"
+	"regeet.io/api/internal/fault"
 )
 
 // Node

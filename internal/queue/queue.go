@@ -5,7 +5,7 @@ import (
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-amqp/pkg/amqp"
-	"go.giteam.ir/giteam/internal/conf"
+	"regeet.io/api/internal/conf"
 )
 
 // Queue
