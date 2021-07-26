@@ -26,6 +26,13 @@ var Cog struct {
 	Redis struct {
 		Url string `yaml:"url"`
 	}
+	Ssh struct {
+		Key struct {
+			PublicKey  string `yaml:"publicKey"`
+			PrivateKey string `yaml:"privateKey"`
+			Passphrase string `yaml:"passphrase"`
+		} `yaml:"key"`
+	} `yaml:"ssh"`
 	Jwt struct {
 		PublicKey  string `yaml:"publicKey"`
 		PrivateKey string `yaml:"privateKey"`

@@ -1,12 +1,15 @@
 package service
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
+	"regeet.io/api/internal/app/ssh"
 	"regeet.io/api/internal/conf"
 	"regeet.io/api/internal/facade"
 )
@@ -91,10 +94,10 @@ func (s *gitService) UploadPack(ec echo.Context) error {
 }
 
 // GitOpt
-var GitOpt = fx.Invoke(registerGitHandlers)
+var GitOpt = fx.Options(ssh.SshOpt, fx.Invoke(registerGitHandlers))
 
 // registerGitHandlers
-func registerGitHandlers(ee *echo.Echo) {
+func registerGitHandlers(lc fx.Lifecycle, ee *echo.Echo, ssh *ssh.Ssh) {
 	svc := &gitService{}
 
 	//
@@ -109,4 +112,23 @@ func registerGitHandlers(ee *echo.Echo) {
 	eg.GET("/info/refs", svc.InfoRefs)
 	eg.POST("/git-receive-pack", svc.ReceivePack)
 	eg.POST("/git-upload-pack", svc.UploadPack)
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) error {
+			var err error
+
+			var listener net.Listener
+			if listener, err = net.Listen("tcp", ":8022"); err != nil {
+				conf.Log.Fatal("service: cannot start the ssh listener")
+			}
+
+			go func() {
+				ssh.ListenAndServe(listener, func() error {
+					return nil
+				})
+			}()
+
+			return nil
+		},
+	})
 }
