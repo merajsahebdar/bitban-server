@@ -18,6 +18,7 @@ package util
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -47,26 +48,39 @@ func ContextWrapper() echo.MiddlewareFunc {
 	}
 }
 
-// getEchoContext
-func getEchoContext(ctx context.Context) echo.Context {
-	return ctx.Value(echoContextKey{}).(echo.Context)
+// GetEchoContext
+func GetEchoContext(ctx context.Context) (echo.Context, error) {
+	if ec, ok := ctx.Value(echoContextKey{}).(echo.Context); ok {
+		return ec, nil
+	} else {
+		return nil, errors.New("no echo context")
+	}
+}
+
+// MustGetEchoContext
+func MustGetEchoContext(ctx context.Context) echo.Context {
+	if ec, err := GetEchoContext(ctx); err != nil {
+		panic(err)
+	} else {
+		return ec
+	}
 }
 
 // SetResponseStatus
 func SetResponseStatus(ctx context.Context, status int) {
-	res := getEchoContext(ctx).Response()
+	res := MustGetEchoContext(ctx).Response()
 	res.Status = status
 }
 
 // SetCookie
 func SetCookie(ctx context.Context, cookie *http.Cookie) {
-	ec := getEchoContext(ctx)
+	ec := MustGetEchoContext(ctx)
 	ec.SetCookie(cookie)
 }
 
 // GetHeader
 func GetHeader(ctx context.Context, key string) string {
-	ec := getEchoContext(ctx)
+	ec := MustGetEchoContext(ctx)
 	return ec.Request().Header.Get(key)
 }
 
@@ -75,7 +89,7 @@ func GetHeader(ctx context.Context, key string) string {
 // Errors:
 //   - common.ErrMissingCookie in case of not founding the asked cookie
 func GetCookie(ctx context.Context, cookieName string) (cookie *http.Cookie, err error) {
-	ec := getEchoContext(ctx)
+	ec := MustGetEchoContext(ctx)
 	if cookie, err = ec.Cookie(cookieName); err != nil {
 		return nil, fault.ErrMissingCookie
 	}

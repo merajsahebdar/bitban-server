@@ -37,6 +37,13 @@ import (
 	"regeet.io/api/internal/util"
 )
 
+// toEchoHandler
+func toEchoHandler(h func(context.Context) error) echo.HandlerFunc {
+	return func(ec echo.Context) error {
+		return h(ec.Request().Context())
+	}
+}
+
 // EchoOpt
 var EchoOpt = fx.Invoke(registerEchoLifecycle)
 
@@ -55,9 +62,9 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 			return hf(c)
 		}
 	})
-	eg.GET("/info/refs", repoController.InfoRefs)
-	eg.POST("/git-receive-pack", repoController.ReceivePack)
-	eg.POST("/git-upload-pack", repoController.UploadPack)
+	eg.GET("/info/refs", toEchoHandler(repoController.InfoRefs))
+	eg.POST("/git-receive-pack", toEchoHandler(repoController.ReceivePack))
+	eg.POST("/git-upload-pack", toEchoHandler(repoController.UploadPack))
 
 	//
 	// Register GraphQL

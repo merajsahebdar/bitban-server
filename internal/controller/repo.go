@@ -23,14 +23,18 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
+	"golang.org/x/net/context"
 	"regeet.io/api/internal/facade"
+	"regeet.io/api/internal/util"
 )
 
 // Repo
 type Repo struct{}
 
 // InfoRefs
-func (c *Repo) InfoRefs(ec echo.Context) error {
+func (c *Repo) InfoRefs(ctx context.Context) error {
+	ec := util.MustGetEchoContext(ctx)
+
 	var err error
 	var repo *facade.Repo
 
@@ -54,7 +58,9 @@ func (c *Repo) InfoRefs(ec echo.Context) error {
 }
 
 // ReceivePack
-func (c *Repo) ReceivePack(ec echo.Context) error {
+func (c *Repo) ReceivePack(ctx context.Context) error {
+	ec := util.MustGetEchoContext(ctx)
+
 	var err error
 	var repo *facade.Repo
 
@@ -80,7 +86,9 @@ func (c *Repo) ReceivePack(ec echo.Context) error {
 }
 
 // UploadPack
-func (c *Repo) UploadPack(ec echo.Context) error {
+func (c *Repo) UploadPack(ctx context.Context) error {
+	ec := util.MustGetEchoContext(ctx)
+
 	var err error
 	var repo *facade.Repo
 
