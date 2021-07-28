@@ -18,15 +18,12 @@ package api
 
 import (
 	"context"
-	"io/ioutil"
 	"net"
-	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"go.uber.org/fx"
 	"regeet.io/api/internal/conf"
 	"regeet.io/api/internal/controller"
-	"regeet.io/api/internal/facade"
 	"regeet.io/api/internal/pkg/ssh"
 )
 
@@ -37,39 +34,8 @@ var SshOpt = fx.Invoke(registerSshServerLifecycle)
 func registerSshServerLifecycle(lc fx.Lifecycle, repoController *controller.Repo) {
 	srv := ssh.NewServer("api.ssh")
 
-	srv.Use(transport.UploadPackServiceName, func(ctx context.Context, args string) error {
-		ch := ssh.GetContextCh(ctx)
-
-		if repo, err := facade.GetRepoByName(
-			ctx,
-			strings.TrimSuffix(args, ".git"),
-		); err != nil {
-			return err
-		} else {
-			if err := repo.UploadPack(ioutil.NopCloser(ch), ch, true); err != nil {
-				return err
-			}
-
-			return nil
-		}
-	})
-
-	srv.Use(transport.ReceivePackServiceName, func(ctx context.Context, args string) error {
-		ch := ssh.GetContextCh(ctx)
-
-		if repo, err := facade.GetRepoByName(
-			ctx,
-			strings.TrimSuffix(args, ".git"),
-		); err != nil {
-			return err
-		} else {
-			if err := repo.ReceivePack(ioutil.NopCloser(ch), ch, true); err != nil {
-				return err
-			}
-
-			return nil
-		}
-	})
+	srv.Use(transport.UploadPackServiceName, repoController.UploadPack)
+	srv.Use(transport.ReceivePackServiceName, repoController.ReceivePack)
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

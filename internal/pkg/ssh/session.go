@@ -26,8 +26,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-// requestCmd
-type requestCmd struct {
+// RequestCmd
+type RequestCmd struct {
 	Line string
 	Name string
 	Args string
@@ -44,7 +44,7 @@ type session struct {
 	*sshLog
 	sync.Mutex
 	gossh.Channel
-	handler map[string]Handler
+	handler map[string]HandlerFunc
 	reqs    <-chan *gossh.Request
 	ctx     context.Context
 	exited  bool
@@ -73,7 +73,7 @@ func (sess *session) track() {
 	go func(reqs <-chan *gossh.Request) {
 		defer sess.Close()
 
-		var cmd requestCmd
+		var cmd RequestCmd
 		var envs []requestEnv
 		var isHandled bool
 
@@ -104,9 +104,10 @@ func (sess *session) track() {
 					sess.Info("received a new request", zap.String("request", cmd.Name))
 					if handler, ok := sess.handler[cmd.Name]; ok {
 						var nextCtx context.Context
-						nextCtx = withContextEnvs(sess.ctx, envs)
+						nextCtx = withContextCmd(sess.ctx, cmd)
+						nextCtx = withContextEnvs(nextCtx, envs)
 						nextCtx = withContextCh(nextCtx, sess.Channel)
-						handler(nextCtx, cmd.Args)
+						handler(nextCtx)
 						sess.exit([]byte{0, 0, 0, 0})
 					} else {
 						sess.Error(

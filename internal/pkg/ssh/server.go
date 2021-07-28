@@ -27,18 +27,18 @@ import (
 	"regeet.io/api/internal/conf"
 )
 
-// Handler
-type Handler func(ctx context.Context, args string) error
+// HandlerFunc
+type HandlerFunc func(ctx context.Context) error
 
 // Server
 type Server struct {
 	log     *sshLog
 	config  *gossh.ServerConfig
-	handler map[string]Handler
+	handler map[string]HandlerFunc
 }
 
 // Use
-func (srv *Server) Use(cmdLine string, handler Handler) {
+func (srv *Server) Use(cmdLine string, handler HandlerFunc) {
 	if _, ok := srv.handler[cmdLine]; ok {
 		srv.log.Fatal("not allowed to register more than one handler for each command")
 	} else {
@@ -105,6 +105,6 @@ func NewServer(logScope string) *Server {
 	return &Server{
 		log:     log,
 		config:  sshConfig,
-		handler: make(map[string]Handler),
+		handler: make(map[string]HandlerFunc),
 	}
 }

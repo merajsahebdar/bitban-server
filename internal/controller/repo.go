@@ -18,13 +18,19 @@ package controller
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
+	"go.uber.org/zap"
 	"golang.org/x/net/context"
+	"regeet.io/api/internal/conf"
 	"regeet.io/api/internal/facade"
+	"regeet.io/api/internal/pkg/ssh"
 	"regeet.io/api/internal/util"
 )
 
@@ -59,27 +65,53 @@ func (c *Repo) InfoRefs(ctx context.Context) error {
 
 // ReceivePack
 func (c *Repo) ReceivePack(ctx context.Context) error {
-	ec := util.MustGetEchoContext(ctx)
+	var repoName string
+	var advRequest bool
+
+	var r io.Reader
+	var w io.Writer
+
+	if ec, err := util.GetEchoContext(ctx); err != nil {
+		if ch, err := ssh.GetContextCh(ctx); err != nil {
+			// TODO: what we should do?
+		} else {
+			cmd := ssh.GetContextCmd(ctx)
+			repoName = cmd.Args
+			advRequest = true
+
+			r = ioutil.NopCloser(ch)
+			w = ch
+		}
+	} else {
+		repoName = ec.Param("name")
+		advRequest = false
+
+		req := ec.Request()
+		res := ec.Response()
+
+		r = req.Body
+		w = res.Writer
+
+		res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
+		res.Header().Set("Cache-Control", "no-cache")
+		res.WriteHeader(200)
+	}
 
 	var err error
 	var repo *facade.Repo
 
-	req := ec.Request()
-	res := ec.Response()
-
 	if repo, err = facade.GetRepoByName(
-		req.Context(),
-		ec.Param("name"),
+		ctx,
+		strings.TrimSuffix(repoName, ".git"),
 	); err != nil {
-		return echo.NewHTTPError(http.StatusNotFound)
+		// TODO:
+		conf.Log.Error("failed to initiate a repo facade", zap.Error(err))
+		return nil
 	}
 
-	res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
-	res.Header().Set("Cache-Control", "no-cache")
-	res.WriteHeader(200)
-
-	if err := repo.ReceivePack(req.Body, res.Writer, false); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError)
+	if err := repo.ReceivePack(r, w, advRequest); err != nil {
+		// TODO: what is the best way to handle this error?
+		conf.Log.Error("got an error on precessing git request", zap.Error(err))
 	}
 
 	return nil
@@ -87,27 +119,53 @@ func (c *Repo) ReceivePack(ctx context.Context) error {
 
 // UploadPack
 func (c *Repo) UploadPack(ctx context.Context) error {
-	ec := util.MustGetEchoContext(ctx)
+	var repoName string
+	var advRequest bool
+
+	var r io.Reader
+	var w io.Writer
+
+	if ec, err := util.GetEchoContext(ctx); err != nil {
+		if ch, err := ssh.GetContextCh(ctx); err != nil {
+			// TODO: what we should do?
+		} else {
+			cmd := ssh.GetContextCmd(ctx)
+			repoName = cmd.Args
+			advRequest = true
+
+			r = ioutil.NopCloser(ch)
+			w = ch
+		}
+	} else {
+		repoName = ec.Param("name")
+		advRequest = false
+
+		req := ec.Request()
+		res := ec.Response()
+
+		r = req.Body
+		w = res.Writer
+
+		res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
+		res.Header().Set("Cache-Control", "no-cache")
+		res.WriteHeader(200)
+	}
 
 	var err error
 	var repo *facade.Repo
 
-	req := ec.Request()
-	res := ec.Response()
-
 	if repo, err = facade.GetRepoByName(
-		req.Context(),
-		ec.Param("name"),
+		ctx,
+		strings.TrimSuffix(repoName, ".git"),
 	); err != nil {
-		return echo.NewHTTPError(http.StatusNotFound)
+		// TODO:
+		conf.Log.Error("failed to initiate a repo facade", zap.Error(err))
+		return nil
 	}
 
-	res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
-	res.Header().Set("Cache-Control", "no-cache")
-	res.WriteHeader(200)
-
-	if err := repo.UploadPack(req.Body, res.Writer, false); err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError)
+	if err := repo.UploadPack(r, w, advRequest); err != nil {
+		// TODO: what is the best way to handle this error?
+		conf.Log.Error("got an error on precessing git request", zap.Error(err))
 	}
 
 	return nil

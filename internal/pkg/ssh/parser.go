@@ -28,7 +28,7 @@ import (
 var commandParserRegex = regexp.MustCompile(`^(git[-|\s]upload-pack|git[-|\s]upload-archive|git[-|\s]receive-pack) '(.*)'$`)
 
 // parseExecCommand
-func parseExecCommand(p []byte, cmd *requestCmd) error {
+func parseExecCommand(p []byte, cmd *RequestCmd) error {
 	gossh.Unmarshal(p, cmd)
 
 	if matches := commandParserRegex.FindAllStringSubmatch(cmd.Line, 1); len(matches) == 0 {

@@ -18,6 +18,7 @@ package ssh
 
 import (
 	"context"
+	"errors"
 	"net"
 
 	gossh "golang.org/x/crypto/ssh"
@@ -31,6 +32,9 @@ type netConnContextKey struct{}
 
 // envsContextKey
 type envsContextKey struct{}
+
+// cmdContextKey
+type cmdContextKey struct{}
 
 // chContextKey
 type chContextKey struct{}
@@ -74,6 +78,33 @@ func withContextCh(ctx context.Context, ch gossh.Channel) context.Context {
 }
 
 // GetContextCh
-func GetContextCh(ctx context.Context) gossh.Channel {
-	return ctx.Value(chContextKey{}).(gossh.Channel)
+func GetContextCh(ctx context.Context) (gossh.Channel, error) {
+	if ch, ok := ctx.Value(chContextKey{}).(gossh.Channel); ok {
+		return ch, nil
+	} else {
+		return nil, errors.New("no ssh channel")
+	}
+}
+
+// MustGetContextCh
+func MustGetContextCh(ctx context.Context) gossh.Channel {
+	if ch, err := GetContextCh(ctx); err != nil {
+		panic(err)
+	} else {
+		return ch
+	}
+}
+
+// withContextCmd
+func withContextCmd(ctx context.Context, cmd RequestCmd) context.Context {
+	return context.WithValue(
+		ctx,
+		cmdContextKey{},
+		cmd,
+	)
+}
+
+// GetContextCmd
+func GetContextCmd(ctx context.Context) RequestCmd {
+	return ctx.Value(cmdContextKey{}).(RequestCmd)
 }
