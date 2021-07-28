@@ -22,8 +22,8 @@ import (
 
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"go.uber.org/fx"
-	"regeet.io/api/internal/conf"
-	"regeet.io/api/internal/controller"
+	"regeet.io/api/internal/app/controller"
+	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/ssh"
 )
 
@@ -43,7 +43,7 @@ func registerSshServerLifecycle(lc fx.Lifecycle, repoController *controller.Repo
 
 			var listener net.Listener
 			if listener, err = net.Listen("tcp", ":8022"); err != nil {
-				conf.Log.Fatal("service: cannot start the ssh listener")
+				cfg.Log.Fatal("service: cannot start the ssh listener")
 			}
 
 			go func() {

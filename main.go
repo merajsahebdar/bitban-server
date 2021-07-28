@@ -24,10 +24,10 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"regeet.io/api/internal/app/api"
-	"regeet.io/api/internal/conf"
-	"regeet.io/api/internal/controller"
-	"regeet.io/api/internal/db"
-	"regeet.io/api/internal/resolver"
+	"regeet.io/api/internal/app/controller"
+	"regeet.io/api/internal/app/resolver"
+	"regeet.io/api/internal/cfg"
+	"regeet.io/api/internal/pkg/db"
 )
 
 // MigrateUpCmd
@@ -38,13 +38,13 @@ func (cmd *MigrateUpCmd) Run() error {
 	migrate.SetTable("migrations")
 	appliedCount, err := migrate.Exec(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Up)
 	if err != nil {
-		conf.Log.Fatal("failed to apply migrations", zap.String("error", err.Error()))
+		cfg.Log.Fatal("failed to apply migrations", zap.String("error", err.Error()))
 	}
 
 	if appliedCount > 0 {
-		conf.Log.Info("migrations just applied", zap.Int("appliedCount", appliedCount))
+		cfg.Log.Info("migrations just applied", zap.Int("appliedCount", appliedCount))
 	} else {
-		conf.Log.Info("there are no migrations to apply")
+		cfg.Log.Info("there are no migrations to apply")
 	}
 
 	return nil
@@ -58,13 +58,13 @@ func (cmd *MigrateDownCmd) Run() error {
 	migrate.SetTable("migrations")
 	droppedCount, err := migrate.Exec(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Down)
 	if err != nil {
-		conf.Log.Fatal("failed to drop migrations", zap.String("error", err.Error()))
+		cfg.Log.Fatal("failed to drop migrations", zap.String("error", err.Error()))
 	}
 
 	if droppedCount > 0 {
-		conf.Log.Info("migrations just dropped", zap.Int("droppedCount", droppedCount))
+		cfg.Log.Info("migrations just dropped", zap.Int("droppedCount", droppedCount))
 	} else {
-		conf.Log.Info("there are no migrations to drop")
+		cfg.Log.Info("there are no migrations to drop")
 	}
 
 	return nil
@@ -77,18 +77,16 @@ type RunCmd struct {
 
 // Run Starts the app.
 func (cmd *RunCmd) Run() error {
-	conf.Log.Info("starting...", zap.Int("pid", os.Getpid()))
+	cfg.Log.Info("starting...", zap.Int("pid", os.Getpid()))
 
 	// Provide app dependincies.
 	opts := []fx.Option{
-		// Queues
 		// Controllers
 		controller.AccountOpt,
 		controller.RepoOpt,
 		// Resolvers
 		resolver.ConfigOpt,
 		// APIs
-		api.QueueOpt,
 		api.EchoOpt,
 		api.SshOpt,
 	}
@@ -118,6 +116,6 @@ var CLI struct {
 // main
 func main() {
 	if err := kong.Parse(&CLI).Run(&CLI); err != nil {
-		conf.Log.Fatal(err.Error())
+		cfg.Log.Fatal(err.Error())
 	}
 }

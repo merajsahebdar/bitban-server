@@ -4,8 +4,6 @@ go 1.16
 
 require (
 	github.com/99designs/gqlgen v0.13.0
-	github.com/ThreeDotsLabs/watermill v1.1.1
-	github.com/ThreeDotsLabs/watermill-amqp v1.1.2
 	github.com/alecthomas/kong v0.2.17
 	github.com/casbin/casbin/v2 v2.34.0
 	github.com/cenkalti/backoff/v4 v4.1.1

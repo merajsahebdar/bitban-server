@@ -30,11 +30,11 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"regeet.io/api/internal/conf"
-	"regeet.io/api/internal/controller"
-	"regeet.io/api/internal/resolver"
-	"regeet.io/api/internal/schema"
-	"regeet.io/api/internal/util"
+	"regeet.io/api/internal/app/controller"
+	"regeet.io/api/internal/app/resolver"
+	"regeet.io/api/internal/cfg"
+	"regeet.io/api/internal/pkg/schema"
+	"regeet.io/api/internal/pkg/util"
 )
 
 // toEchoHandler
@@ -58,7 +58,7 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 
 	eg := ee.Group("/-/:name", func(hf echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			conf.Log.Info("got a git client request", zap.String("path", c.Request().URL.Path), zap.String("query", c.Request().URL.RawQuery))
+			cfg.Log.Info("got a git client request", zap.String("path", c.Request().URL.Path), zap.String("query", c.Request().URL.RawQuery))
 			return hf(c)
 		}
 	})
@@ -85,13 +85,13 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 			fields = append(fields, zap.String("error", err))
 		}
 
-		conf.Log.Error("got a panic error when processing a graphql request", fields...)
+		cfg.Log.Error("got a panic error when processing a graphql request", fields...)
 
 		return resolver.InternalServerErrorFrom(nil)
 	})
 
 	// Enable tracing in development mode.
-	if conf.CurrentEnv == conf.Dev {
+	if cfg.CurrentEnv == cfg.Dev {
 		queryHandler.Use(apollotracing.Tracer{})
 	}
 
@@ -101,7 +101,7 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 	})
 
 	// Register playground just in development mode.
-	if conf.CurrentEnv == conf.Dev {
+	if cfg.CurrentEnv == cfg.Dev {
 		playgroundHandler := playground.Handler("GraphQL Playground", "/api")
 
 		ee.GET("/api/playground", func(ec echo.Context) error {
@@ -115,17 +115,17 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) (err error) {
-			addr := fmt.Sprintf("%s:%d", conf.Cog.App.Host, conf.Cog.App.Port)
+			addr := fmt.Sprintf("%s:%d", cfg.Cog.App.Host, cfg.Cog.App.Port)
 
 			if ee.Listener, err = net.Listen("tcp", addr); err != nil {
-				conf.Log.Fatal("cannot start the http listener", zap.Error(err))
+				cfg.Log.Fatal("cannot start the http listener", zap.Error(err))
 			}
 
-			conf.Log.Info("ready to respond http requests...", zap.String("addr", addr))
+			cfg.Log.Info("ready to respond http requests...", zap.String("addr", addr))
 
 			go func() {
 				if err := ee.Start(addr); err != nil {
-					conf.Log.Fatal("cannot start the http server", zap.Error(err))
+					cfg.Log.Fatal("cannot start the http server", zap.Error(err))
 				}
 			}()
 

@@ -24,7 +24,7 @@ import (
 
 	"go.uber.org/zap"
 	gossh "golang.org/x/crypto/ssh"
-	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/cfg"
 )
 
 // HandlerFunc
@@ -33,7 +33,7 @@ type HandlerFunc func(ctx context.Context) error
 // Server
 type Server struct {
 	log     *sshLog
-	config  *gossh.ServerConfig
+	cfgig  *gossh.ServerConfig
 	handler map[string]HandlerFunc
 }
 
@@ -60,7 +60,7 @@ func (srv *Server) ListenAndServe(listener net.Listener) {
 					cancel()
 				}()
 
-				if sshConn, chans, reqs, err := gossh.NewServerConn(netConn, srv.config); err != nil {
+				if sshConn, chans, reqs, err := gossh.NewServerConn(netConn, srv.cfgig); err != nil {
 					if err == io.EOF {
 						srv.log.Error("handshaking was terminated")
 					} else {
@@ -82,18 +82,18 @@ func NewServer(logScope string) *Server {
 	var err error
 
 	log := &sshLog{
-		conf.Log.With(zap.String("scope", logScope)),
+		cfg.Log.With(zap.String("scope", logScope)),
 	}
 
 	var privatePEM []byte
-	if privatePEM, err = base64.StdEncoding.DecodeString(conf.Cog.Ssh.Key.PrivateKey); err != nil {
+	if privatePEM, err = base64.StdEncoding.DecodeString(cfg.Cog.Ssh.Key.PrivateKey); err != nil {
 		log.Fatal("failed to decode private key")
 	}
 
 	var privateKey gossh.Signer
 	if privateKey, err = gossh.ParsePrivateKeyWithPassphrase(
 		privatePEM,
-		[]byte(conf.Cog.Ssh.Key.Passphrase),
+		[]byte(cfg.Cog.Ssh.Key.Passphrase),
 	); err != nil {
 		log.Fatal("failed to parse private key")
 	}
@@ -104,7 +104,7 @@ func NewServer(logScope string) *Server {
 
 	return &Server{
 		log:     log,
-		config:  sshConfig,
+		cfgig:  sshConfig,
 		handler: make(map[string]HandlerFunc),
 	}
 }

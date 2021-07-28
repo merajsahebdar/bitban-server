@@ -4,13 +4,13 @@ schema:
 
 # Where should the generated server code go?
 exec:
-  filename: internal/schema/server.go
+  filename: internal/pkg/schema/server.go
   package: schema
 
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "regeet.io/api/internal/dto"
+  - "regeet.io/api/internal/pkg/dto"
 
 # This section declares type mapping between the GraphQL and go type systems
 #

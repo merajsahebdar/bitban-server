@@ -17,16 +17,6 @@ services:
       - type: volume
         source: postgres
         target: /var/lib/postgresql/data/pgdata
-  # AMQP
-  amqp:
-    container_name: regeet-amqp
-    image: rabbitmq:3.8
-    ports:
-      - 5672:5672
-    volumes:
-      - type: volume
-        source: amqp
-        target: /var/lib/rabbitmq
   # Cache
   cache:
     container_name: regeet-cache
