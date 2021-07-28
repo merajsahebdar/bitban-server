@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package api
+package controller
 
 import (
-	"context"
 	"fmt"
-	"net"
 	"net/http"
 
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
-	"regeet.io/api/internal/app/ssh"
-	"regeet.io/api/internal/conf"
 	"regeet.io/api/internal/facade"
 )
 
-// gitService
-type gitService struct{}
+// Repo
+type Repo struct{}
 
 // InfoRefs
-func (s *gitService) InfoRefs(ec echo.Context) error {
+func (c *Repo) InfoRefs(ec echo.Context) error {
 	var err error
 	var repo *facade.Repo
 
@@ -57,7 +54,7 @@ func (s *gitService) InfoRefs(ec echo.Context) error {
 }
 
 // ReceivePack
-func (s *gitService) ReceivePack(ec echo.Context) error {
+func (c *Repo) ReceivePack(ec echo.Context) error {
 	var err error
 	var repo *facade.Repo
 
@@ -71,11 +68,11 @@ func (s *gitService) ReceivePack(ec echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
 
-	res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", "git-receive-pack"))
+	res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
 	res.Header().Set("Cache-Control", "no-cache")
 	res.WriteHeader(200)
 
-	if err := repo.ReceivePack(req.Body, res.Writer); err != nil {
+	if err := repo.ReceivePack(req.Body, res.Writer, false); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
@@ -83,7 +80,7 @@ func (s *gitService) ReceivePack(ec echo.Context) error {
 }
 
 // UploadPack
-func (s *gitService) UploadPack(ec echo.Context) error {
+func (c *Repo) UploadPack(ec echo.Context) error {
 	var err error
 	var repo *facade.Repo
 
@@ -97,36 +94,21 @@ func (s *gitService) UploadPack(ec echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
 
-	res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", "git-upload-pack"))
+	res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
 	res.Header().Set("Cache-Control", "no-cache")
 	res.WriteHeader(200)
 
-	if err := repo.UploadPack(req.Body, res.Writer); err != nil {
+	if err := repo.UploadPack(req.Body, res.Writer, false); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
 
 	return nil
 }
 
-// SshOpt
-var SshOpt = fx.Invoke(registerSshServerLifecycle)
+// RepoOpt
+var RepoOpt = fx.Provide(newRepo)
 
-// registerSshServerLifecycle
-func registerSshServerLifecycle(lc fx.Lifecycle, srv *ssh.Server) {
-	lc.Append(fx.Hook{
-		OnStart: func(ctx context.Context) error {
-			var err error
-
-			var listener net.Listener
-			if listener, err = net.Listen("tcp", ":8022"); err != nil {
-				conf.Log.Fatal("service: cannot start the ssh listener")
-			}
-
-			go func() {
-				srv.ListenAndServe(listener)
-			}()
-
-			return nil
-		},
-	})
+// newRepo
+func newRepo() *Repo {
+	return &Repo{}
 }

@@ -48,82 +48,123 @@ type serverLoader struct {
 	storage storage.Storer
 }
 
+// Load
 func (l *serverLoader) Load(ep *transport.Endpoint) (storer.Storer, error) {
 	return l.storage, nil
 }
 
+// getTransportServer
+func (f *Repo) getTransportServer() transport.Transport {
+	return server.NewServer(f.loader)
+}
+
+// advertiseRefs
+func (f *Repo) advertiseRefs(w io.Writer, sess transport.Session) error {
+	ar, err := sess.AdvertisedReferencesContext(f.ctx)
+	if err != nil {
+		return err
+	}
+
+	return ar.Encode(w)
+}
+
+// initReceivePackSession
+func (f *Repo) initReceivePackSession() (transport.ReceivePackSession, error) {
+	sess, err := f.getTransportServer().NewReceivePackSession(&transport.Endpoint{}, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return sess, nil
+}
+
+// initUploadPackSession
+func (f *Repo) initUploadPackSession() (transport.UploadPackSession, error) {
+	sess, err := f.getTransportServer().NewUploadPackSession(&transport.Endpoint{}, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return sess, nil
+}
+
 // AdvertiseRefs
 func (f *Repo) AdvertiseRefs(service string, w io.Writer) error {
-	srv := server.NewServer(f.loader)
-
 	var err error
-	var ar *packp.AdvRefs
+
+	var sess transport.Session
 
 	switch service {
-	case "git-receive-pack":
-		var sess transport.ReceivePackSession
-		if sess, err = srv.NewReceivePackSession(&transport.Endpoint{}, nil); err != nil {
-			return err
-		} else {
-			ar, err = sess.AdvertisedReferencesContext(f.ctx)
-		}
-	case "git-upload-pack":
-		var sess transport.UploadPackSession
-		if sess, err = srv.NewUploadPackSession(&transport.Endpoint{}, nil); err != nil {
-			return err
-		} else {
-			ar, err = sess.AdvertisedReferencesContext(f.ctx)
-		}
+	case transport.ReceivePackServiceName:
+		sess, err = f.initReceivePackSession()
+	case transport.UploadPackServiceName:
+		sess, err = f.initUploadPackSession()
 	}
 
 	if err != nil {
 		return err
 	}
 
-	enc := pktline.NewEncoder(w)
-	enc.Encodef("# service=%s\n", service)
-	enc.Flush()
+	if ar, err := sess.AdvertisedReferencesContext(f.ctx); err != nil {
+		return err
+	} else {
+		enc := pktline.NewEncoder(w)
+		enc.Encodef("# service=%s\n", service)
+		enc.Flush()
 
-	return ar.Encode(w)
+		return ar.Encode(w)
+	}
 }
 
 // ReceivePack
-func (f *Repo) ReceivePack(r io.Reader, w io.Writer) error {
-	srv := server.NewServer(f.loader)
-
-	if sess, err := srv.NewReceivePackSession(&transport.Endpoint{}, nil); err != nil {
+func (f *Repo) ReceivePack(r io.Reader, w io.Writer, adv bool) error {
+	sess, err := f.initReceivePackSession()
+	if err != nil {
 		return err
-	} else {
-		req := packp.NewReferenceUpdateRequest()
-		if err := req.Decode(r); err != nil {
+	}
+
+	req := packp.NewReferenceUpdateRequest()
+
+	if adv {
+		if err = f.advertiseRefs(w, sess); err != nil {
 			return err
 		}
+	}
 
-		if status, _ := sess.ReceivePack(f.ctx, req); status != nil {
-			return status.Encode(w)
-		}
+	if err := req.Decode(r); err != nil {
+		return err
+	}
 
-		return nil
+	if status, err := sess.ReceivePack(f.ctx, req); status != nil {
+		return status.Encode(w)
+	} else {
+		return err
 	}
 }
 
 // UploadPack
-func (f *Repo) UploadPack(r io.Reader, w io.Writer) error {
-	srv := server.NewServer(f.loader)
-
-	if sess, err := srv.NewUploadPackSession(&transport.Endpoint{}, nil); err != nil {
+func (f *Repo) UploadPack(r io.Reader, w io.Writer, adv bool) error {
+	sess, err := f.initUploadPackSession()
+	if err != nil {
 		return err
-	} else {
-		req := packp.NewUploadPackRequest()
-		if err := req.Decode(r); err != nil {
+	}
+
+	req := packp.NewUploadPackRequest()
+
+	if adv {
+		if err = f.advertiseRefs(w, sess); err != nil {
 			return err
 		}
+	}
 
-		if status, _ := sess.UploadPack(f.ctx, req); status != nil {
-			return status.Encode(w)
-		}
+	if err := req.Decode(r); err != nil {
+		return err
+	}
 
-		return nil
+	if status, err := sess.UploadPack(f.ctx, req); status != nil {
+		return status.Encode(w)
+	} else {
+		return err
 	}
 }
 

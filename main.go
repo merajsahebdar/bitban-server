@@ -24,7 +24,6 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"regeet.io/api/internal/app/api"
-	"regeet.io/api/internal/app/ssh"
 	"regeet.io/api/internal/conf"
 	"regeet.io/api/internal/controller"
 	"regeet.io/api/internal/db"
@@ -82,10 +81,10 @@ func (cmd *RunCmd) Run() error {
 
 	// Provide app dependincies.
 	opts := []fx.Option{
-		ssh.ServerOpt,
 		// Queues
 		// Controllers
 		controller.AccountOpt,
+		controller.RepoOpt,
 		// Resolvers
 		resolver.ConfigOpt,
 		// APIs

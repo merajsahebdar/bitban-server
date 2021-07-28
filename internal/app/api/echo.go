@@ -31,6 +31,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"regeet.io/api/internal/conf"
+	"regeet.io/api/internal/controller"
 	"regeet.io/api/internal/resolver"
 	"regeet.io/api/internal/schema"
 	"regeet.io/api/internal/util"
@@ -40,7 +41,7 @@ import (
 var EchoOpt = fx.Invoke(registerEchoLifecycle)
 
 // registerEchoLifecycle
-func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config) {
+func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoController *controller.Repo) {
 	ee := echo.New()
 	ee.Use(util.ContextWrapper())
 	ee.Use(middleware.Recover())
@@ -48,17 +49,15 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config) {
 	//
 	// Register Git
 
-	svc := &gitService{}
-
 	eg := ee.Group("/-/:name", func(hf echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			conf.Log.Info("got a git client request", zap.String("path", c.Request().URL.Path), zap.String("query", c.Request().URL.RawQuery))
 			return hf(c)
 		}
 	})
-	eg.GET("/info/refs", svc.InfoRefs)
-	eg.POST("/git-receive-pack", svc.ReceivePack)
-	eg.POST("/git-upload-pack", svc.UploadPack)
+	eg.GET("/info/refs", repoController.InfoRefs)
+	eg.POST("/git-receive-pack", repoController.ReceivePack)
+	eg.POST("/git-upload-pack", repoController.UploadPack)
 
 	//
 	// Register GraphQL

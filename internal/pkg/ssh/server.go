@@ -22,24 +22,23 @@ import (
 	"io"
 	"net"
 
-	"go.uber.org/fx"
 	"go.uber.org/zap"
 	gossh "golang.org/x/crypto/ssh"
 	"regeet.io/api/internal/conf"
 )
 
 // Handler
-type Handler func(ctx context.Context) error
+type Handler func(ctx context.Context, args string) error
 
 // Server
 type Server struct {
 	log     *sshLog
 	config  *gossh.ServerConfig
-	handler map[CmdLine]Handler
+	handler map[string]Handler
 }
 
 // Use
-func (srv *Server) Use(cmdLine CmdLine, handler Handler) {
+func (srv *Server) Use(cmdLine string, handler Handler) {
 	if _, ok := srv.handler[cmdLine]; ok {
 		srv.log.Fatal("not allowed to register more than one handler for each command")
 	} else {
@@ -78,12 +77,13 @@ func (srv *Server) ListenAndServe(listener net.Listener) {
 	}
 }
 
-// ServerOpt
-var ServerOpt = fx.Provide(newLog, newServer)
-
-// newServer
-func newServer(log *sshLog) *Server {
+// NewServer
+func NewServer(logScope string) *Server {
 	var err error
+
+	log := &sshLog{
+		conf.Log.With(zap.String("scope", logScope)),
+	}
 
 	var privatePEM []byte
 	if privatePEM, err = base64.StdEncoding.DecodeString(conf.Cog.Ssh.Key.PrivateKey); err != nil {
@@ -105,6 +105,6 @@ func newServer(log *sshLog) *Server {
 	return &Server{
 		log:     log,
 		config:  sshConfig,
-		handler: make(map[CmdLine]Handler),
+		handler: make(map[string]Handler),
 	}
 }

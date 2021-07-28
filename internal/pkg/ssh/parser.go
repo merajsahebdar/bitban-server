@@ -17,16 +17,26 @@
 package ssh
 
 import (
-	"go.uber.org/zap"
-	"regeet.io/api/internal/conf"
+	"errors"
+	"regexp"
+	"strings"
+
+	gossh "golang.org/x/crypto/ssh"
 )
 
-// sshLog
-type sshLog struct {
-	*zap.Logger
-}
+// commandParserRegex
+var commandParserRegex = regexp.MustCompile(`^(git[-|\s]upload-pack|git[-|\s]upload-archive|git[-|\s]receive-pack) '(.*)'$`)
 
-// newLog
-func newLog() *sshLog {
-	return &sshLog{conf.Log.With(zap.String("pkg", "app.api.ssh"))}
+// parseExecCommand
+func parseExecCommand(p []byte, cmd *requestCmd) error {
+	gossh.Unmarshal(p, cmd)
+
+	if matches := commandParserRegex.FindAllStringSubmatch(cmd.Line, 1); len(matches) == 0 {
+		return errors.New("the requested command is wrong")
+	} else {
+		cmd.Name = matches[0][1]
+		cmd.Args = strings.Replace(matches[0][2], "/", "", 1)
+
+		return nil
+	}
 }
