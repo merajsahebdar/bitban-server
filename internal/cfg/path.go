@@ -19,21 +19,46 @@ package cfg
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
-// GetAssetPath Returns path to the requested asset file.
-func GetAssetPath(asset string) (string, error) {
-	dirs := []string{
-		"./configs",
-		"/etc/regeet",
+var (
+	vars = []string{
+		"/var/regeet",
 	}
 
+	etcs = []string{
+		"/etc/regeet",
+	}
+)
+
+// statPaths
+func statPaths(dir string, dirs []string, path ...string) (string, error) {
+	fin := strings.Join(path, "/")
+
 	for _, dir := range dirs {
-		path := dir + asset
-		if _, err := os.Stat(path); err == nil {
-			return path, nil
+		if _, err := os.Stat(dir + fin); err == nil {
+			return dir + fin, nil
 		}
 	}
 
-	return "", fmt.Errorf("cannot find asset: %s", asset)
+	return "", fmt.Errorf("not found %s: %s", dir, fin)
+}
+
+// GetVarPath
+func GetVarPath(path ...string) (string, error) {
+	if found, err := statPaths("var", vars, path...); err != nil {
+		return "", err
+	} else {
+		return found, nil
+	}
+}
+
+// GetEtcPath
+func GetEtcPath(path ...string) (string, error) {
+	if found, err := statPaths("etc", etcs, path...); err != nil {
+		return "", err
+	} else {
+		return found, nil
+	}
 }

@@ -86,7 +86,7 @@ func init() {
 	//
 	// Feed `Cog`
 
-	f, err := GetAssetPath("/cog.yaml")
+	f, err := GetEtcPath("/cog.yaml")
 	if err != nil {
 		Log.Fatal(err.Error())
 	}

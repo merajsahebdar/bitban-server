@@ -19,8 +19,6 @@ package facade
 import (
 	"context"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/go-git/go-billy/v5"
@@ -280,13 +278,12 @@ func (f *Repo) ServePack(serveConfig *ServerPackConfig) error {
 
 // GetRepoByName
 func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
-	path := getPath(name)
-	if _, err := os.Stat(path); err != nil {
+	if path, err := cfg.GetVarPath("/repos", name); err != nil {
 		return nil, err
 	} else {
 		var backend *repoGoBackend
 		if cfg.IsGoBackend() {
-			fs, storage := newStorage(name)
+			fs, storage := newStorage(path)
 			if repository, err := git.Open(storage, nil); err != nil {
 				return nil, err
 			} else {
@@ -308,14 +305,9 @@ func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
 	}
 }
 
-// getPath
-func getPath(name string) string {
-	return os.Getenv("HOME") + cfg.Cog.Storage.Dir + string(rune(filepath.Separator)) + name
-}
-
 // newStorage
-func newStorage(name string) (billy.Filesystem, storage.Storer) {
-	fs := osfs.New(getPath(name))
+func newStorage(path string) (billy.Filesystem, storage.Storer) {
+	fs := osfs.New(path)
 
 	return fs, filesystem.NewStorage(
 		fs,

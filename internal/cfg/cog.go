@@ -42,9 +42,6 @@ var Cog struct {
 		Host string `yaml:"host" default:"0.0.0.0"`
 		Port int    `yaml:"port" default:"8080"`
 	} `yaml:"app"`
-	Storage struct {
-		Dir string `yaml:"dir"`
-	} `yaml:"storage"`
 	Git struct {
 		Backend GitBackend `yaml:"backend"`
 	} `yaml:"git"`
