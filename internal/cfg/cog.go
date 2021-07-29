@@ -16,6 +16,26 @@
 
 package cfg
 
+// GitBackend
+type GitBackend string
+
+const (
+	GitBackendBin GitBackend = "bin"
+	GitBackendGo  GitBackend = "go"
+)
+
+// String
+func (b GitBackend) String() string {
+	switch b {
+	case GitBackendBin:
+		return "bin"
+	case GitBackendGo:
+		return "go"
+	}
+
+	panic("git backend not implemented")
+}
+
 // Cog
 var Cog struct {
 	App struct {
@@ -25,6 +45,9 @@ var Cog struct {
 	Storage struct {
 		Dir string `yaml:"dir"`
 	} `yaml:"storage"`
+	Git struct {
+		Backend GitBackend `yaml:"backend"`
+	} `yaml:"git"`
 	Security struct {
 		AccessTokenExpiresAt  int `yaml:"accessTokenExpiresAt" default:"60"`
 		RefreshTokenExpiresAt int `yaml:"refreshTokenExpiresAt" default:"259200"`
@@ -53,4 +76,9 @@ var Cog struct {
 			Passphrase string `yaml:"passphrase"`
 		} `yaml:"key"`
 	} `yaml:"jwt"`
+}
+
+// IsGoBacked
+func IsGoBackend() bool {
+	return Cog.Git.Backend == GitBackendGo
 }

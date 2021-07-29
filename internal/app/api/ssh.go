@@ -20,10 +20,10 @@ import (
 	"context"
 	"net"
 
-	"github.com/go-git/go-git/v5/plumbing/transport"
 	"go.uber.org/fx"
 	"regeet.io/api/internal/app/controller"
 	"regeet.io/api/internal/cfg"
+	"regeet.io/api/internal/pkg/facade"
 	"regeet.io/api/internal/pkg/ssh"
 )
 
@@ -34,8 +34,8 @@ var SshOpt = fx.Invoke(registerSshServerLifecycle)
 func registerSshServerLifecycle(lc fx.Lifecycle, repoController *controller.Repo) {
 	srv := ssh.NewServer("api.ssh")
 
-	srv.Use(transport.UploadPackServiceName, repoController.UploadPack)
-	srv.Use(transport.ReceivePackServiceName, repoController.ReceivePack)
+	srv.Use(facade.GitReceivePack, repoController.ServePack)
+	srv.Use(facade.GitUploadPack, repoController.ServePack)
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {

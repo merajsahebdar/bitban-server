@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -58,15 +57,16 @@ func (c *Repo) InfoRefs(ctx context.Context) error {
 	res.Header().Set("Cache-Control", "no-cache")
 	res.WriteHeader(200)
 
-	repo.AdvertiseRefs(ec.QueryParam("service"), res.Writer)
+	repo.AdvertiseRefs(res.Writer, ec.QueryParam("service"))
 
 	return nil
 }
 
-// ReceivePack
-func (c *Repo) ReceivePack(ctx context.Context) error {
-	var repoName string
-	var advRequest bool
+// ServePack
+func (c *Repo) ServePack(ctx context.Context) error {
+	var service string
+	var name string
+	var isSsh bool
 
 	var r io.Reader
 	var w io.Writer
@@ -76,15 +76,18 @@ func (c *Repo) ReceivePack(ctx context.Context) error {
 			// TODO: what we should do?
 		} else {
 			cmd := ssh.GetContextCmd(ctx)
-			repoName = cmd.Args
-			advRequest = true
+
+			service = cmd.Name
+			name = cmd.Args
+			isSsh = true
 
 			r = ioutil.NopCloser(ch)
 			w = ch
 		}
 	} else {
-		repoName = ec.Param("name")
-		advRequest = false
+		service = ec.Param("service")
+		name = ec.Param("name")
+		isSsh = false
 
 		req := ec.Request()
 		res := ec.Response()
@@ -92,7 +95,7 @@ func (c *Repo) ReceivePack(ctx context.Context) error {
 		r = req.Body
 		w = res.Writer
 
-		res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
+		res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", service))
 		res.Header().Set("Cache-Control", "no-cache")
 		res.WriteHeader(200)
 	}
@@ -102,68 +105,19 @@ func (c *Repo) ReceivePack(ctx context.Context) error {
 
 	if repo, err = facade.GetRepoByName(
 		ctx,
-		strings.TrimSuffix(repoName, ".git"),
+		strings.TrimSuffix(name, ".git"),
 	); err != nil {
 		// TODO:
 		cfg.Log.Error("failed to initiate a repo facade", zap.Error(err))
 		return nil
 	}
 
-	if err := repo.ReceivePack(r, w, advRequest); err != nil {
-		// TODO: what is the best way to handle this error?
-		cfg.Log.Error("got an error on precessing git request", zap.Error(err))
-	}
-
-	return nil
-}
-
-// UploadPack
-func (c *Repo) UploadPack(ctx context.Context) error {
-	var repoName string
-	var advRequest bool
-
-	var r io.Reader
-	var w io.Writer
-
-	if ec, err := util.GetEchoContext(ctx); err != nil {
-		if ch, err := ssh.GetContextCh(ctx); err != nil {
-			// TODO: what we should do?
-		} else {
-			cmd := ssh.GetContextCmd(ctx)
-			repoName = cmd.Args
-			advRequest = true
-
-			r = ioutil.NopCloser(ch)
-			w = ch
-		}
-	} else {
-		repoName = ec.Param("name")
-		advRequest = false
-
-		req := ec.Request()
-		res := ec.Response()
-
-		r = req.Body
-		w = res.Writer
-
-		res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-result", transport.ReceivePackServiceName))
-		res.Header().Set("Cache-Control", "no-cache")
-		res.WriteHeader(200)
-	}
-
-	var err error
-	var repo *facade.Repo
-
-	if repo, err = facade.GetRepoByName(
-		ctx,
-		strings.TrimSuffix(repoName, ".git"),
-	); err != nil {
-		// TODO:
-		cfg.Log.Error("failed to initiate a repo facade", zap.Error(err))
-		return nil
-	}
-
-	if err := repo.UploadPack(r, w, advRequest); err != nil {
+	if err := repo.ServePack(&facade.ServerPackConfig{
+		R:       r,
+		W:       w,
+		Service: service,
+		IsSsh:   isSsh,
+	}); err != nil {
 		// TODO: what is the best way to handle this error?
 		cfg.Log.Error("got an error on precessing git request", zap.Error(err))
 	}

@@ -20,6 +20,8 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/go-git/go-billy/v5"
 	"github.com/go-git/go-billy/v5/osfs"
@@ -27,21 +29,50 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/cache"
 	"github.com/go-git/go-git/v5/plumbing/format/pktline"
 	"github.com/go-git/go-git/v5/plumbing/protocol/packp"
+	"github.com/go-git/go-git/v5/plumbing/protocol/packp/capability"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/server"
 	"github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
+	gossh "golang.org/x/crypto/ssh"
 	"regeet.io/api/internal/cfg"
+	"regeet.io/api/internal/pkg/exec"
 )
 
-// Repo
-type Repo struct {
-	ctx        context.Context
+// Services
+const (
+	GitReceivePack = "git-receive-pack"
+	GitUploadPack  = "git-upload-pack"
+)
+
+// Capabilities
+const (
+	NoThin capability.Capability = "no-thin"
+)
+
+// ServerPackConfig
+type ServerPackConfig struct {
+	R       io.Reader
+	W       io.Writer
+	Service string
+	IsSsh   bool
+}
+
+// repoBackend
+type repoGoBackend struct {
 	fs         billy.Filesystem
 	storage    storage.Storer
 	loader     server.Loader
 	repository *git.Repository
+}
+
+// Repo
+type Repo struct {
+	*repoGoBackend
+	ctx  context.Context
+	name string
+	path string
 }
 
 type serverLoader struct {
@@ -56,16 +87,6 @@ func (l *serverLoader) Load(ep *transport.Endpoint) (storer.Storer, error) {
 // getTransportServer
 func (f *Repo) getTransportServer() transport.Transport {
 	return server.NewServer(f.loader)
-}
-
-// advertiseRefs
-func (f *Repo) advertiseRefs(w io.Writer, sess transport.Session) error {
-	ar, err := sess.AdvertisedReferencesContext(f.ctx)
-	if err != nil {
-		return err
-	}
-
-	return ar.Encode(w)
 }
 
 // initReceivePackSession
@@ -88,110 +109,216 @@ func (f *Repo) initUploadPackSession() (transport.UploadPackSession, error) {
 	return sess, nil
 }
 
+// setAdvertisingCapabilites
+func setAdvertisingCapabilites(ar *packp.AdvRefs) {
+	ar.Capabilities.Add(NoThin)
+}
+
+// advertiseRefs
+func (f *Repo) advertiseRefs(w io.Writer, sess transport.Session) error {
+	ar, err := sess.AdvertisedReferencesContext(f.ctx)
+	if err != nil {
+		return err
+	}
+
+	setAdvertisingCapabilites(ar)
+
+	return ar.Encode(w)
+}
+
 // AdvertiseRefs
-func (f *Repo) AdvertiseRefs(service string, w io.Writer) error {
-	var err error
+func (f *Repo) AdvertiseRefs(w io.Writer, service string) error {
+	if cfg.IsGoBackend() {
+		var err error
 
-	var sess transport.Session
+		var sess transport.Session
 
-	switch service {
-	case transport.ReceivePackServiceName:
-		sess, err = f.initReceivePackSession()
-	case transport.UploadPackServiceName:
-		sess, err = f.initUploadPackSession()
-	}
+		switch service {
+		case GitReceivePack:
+			sess, err = f.initReceivePackSession()
+		case GitUploadPack:
+			sess, err = f.initUploadPackSession()
+		}
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	if ar, err := sess.AdvertisedReferencesContext(f.ctx); err != nil {
-		return err
+		if ar, err := sess.AdvertisedReferencesContext(f.ctx); err != nil {
+			return err
+		} else {
+			setAdvertisingCapabilites(ar)
+
+			enc := pktline.NewEncoder(w)
+			enc.Encodef("# service=%s\n", service)
+			enc.Flush()
+
+			return ar.Encode(w)
+		}
 	} else {
-		enc := pktline.NewEncoder(w)
-		enc.Encodef("# service=%s\n", service)
-		enc.Flush()
+		if cmd, _, stdout, stderr, err := exec.Create(
+			"git",
+			strings.TrimPrefix(service, "git-"),
+			"--stateless-rpc",
+			"--advertise-refs",
+			".",
+		); err != nil {
+			return err
+		} else {
+			cmd.Dir = f.path
 
-		return ar.Encode(w)
+			if err := cmd.Start(); err != nil {
+				return err
+			}
+
+			enc := pktline.NewEncoder(w)
+			enc.Encodef("# service=%s\n", service)
+
+			io.Copy(w, stdout)
+			io.Copy(w, stderr)
+
+			return cmd.Wait()
+		}
 	}
 }
 
-// ReceivePack
-func (f *Repo) ReceivePack(r io.Reader, w io.Writer, adv bool) error {
-	sess, err := f.initReceivePackSession()
-	if err != nil {
-		return err
-	}
+// ServePack
+func (f *Repo) ServePack(serveConfig *ServerPackConfig) error {
+	r := serveConfig.R
+	w := serveConfig.W
 
-	req := packp.NewReferenceUpdateRequest()
+	if cfg.IsGoBackend() {
+		//
+		// Serve by go-git package.
 
-	if adv {
-		if err = f.advertiseRefs(w, sess); err != nil {
-			return err
+		switch serveConfig.Service {
+		case GitReceivePack:
+			sess, err := f.initReceivePackSession()
+			if err != nil {
+				return err
+			}
+
+			req := packp.NewReferenceUpdateRequest()
+
+			if serveConfig.IsSsh {
+				if err = f.advertiseRefs(w, sess); err != nil {
+					return err
+				}
+			}
+
+			if err := req.Decode(r); err != nil {
+				return err
+			}
+
+			if status, err := sess.ReceivePack(f.ctx, req); status != nil {
+				return status.Encode(w)
+			} else {
+				return err
+			}
+		case GitUploadPack:
+			sess, err := f.initUploadPackSession()
+			if err != nil {
+				return err
+			}
+
+			req := packp.NewUploadPackRequest()
+
+			if serveConfig.IsSsh {
+				if err = f.advertiseRefs(w, sess); err != nil {
+					return err
+				}
+			}
+
+			if err := req.Decode(r); err != nil {
+				return err
+			}
+
+			if status, err := sess.UploadPack(f.ctx, req); status != nil {
+				return status.Encode(w)
+			} else {
+				return err
+			}
 		}
-	}
 
-	if err := req.Decode(r); err != nil {
-		return err
-	}
-
-	if status, err := sess.ReceivePack(f.ctx, req); status != nil {
-		return status.Encode(w)
+		panic("not a valid git service")
 	} else {
-		return err
+		//
+		// Serve by git binary.
+
+		args := []string{
+			strings.TrimPrefix(serveConfig.Service, "git-"),
+		}
+
+		if !serveConfig.IsSsh {
+			args = append(args, "--stateless-rpc")
+		}
+
+		args = append(args, ".")
+
+		if cmd, stdin, stdout, stderr, err := exec.Create(
+			"git",
+			args...,
+		); err != nil {
+			return err
+		} else {
+			cmd.Dir = f.path
+
+			if err := cmd.Start(); err != nil {
+				return err
+			}
+
+			go io.Copy(stdin, r)
+			io.Copy(w, stdout)
+			if ch, ok := w.(gossh.Channel); ok {
+				io.Copy(ch.Stderr(), stderr)
+			}
+
+			return cmd.Wait()
+		}
 	}
 }
 
-// UploadPack
-func (f *Repo) UploadPack(r io.Reader, w io.Writer, adv bool) error {
-	sess, err := f.initUploadPackSession()
-	if err != nil {
-		return err
-	}
-
-	req := packp.NewUploadPackRequest()
-
-	if adv {
-		if err = f.advertiseRefs(w, sess); err != nil {
-			return err
-		}
-	}
-
-	if err := req.Decode(r); err != nil {
-		return err
-	}
-
-	if status, err := sess.UploadPack(f.ctx, req); status != nil {
-		return status.Encode(w)
+// GetRepoByName
+func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
+	path := getPath(name)
+	if _, err := os.Stat(path); err != nil {
+		return nil, err
 	} else {
-		return err
+		var backend *repoGoBackend
+		if cfg.IsGoBackend() {
+			fs, storage := newStorage(name)
+			if repository, err := git.Open(storage, nil); err != nil {
+				return nil, err
+			} else {
+				backend = &repoGoBackend{
+					fs:         fs,
+					storage:    storage,
+					loader:     &serverLoader{storage: storage},
+					repository: repository,
+				}
+			}
+		}
+
+		return &Repo{
+			repoGoBackend: backend,
+			ctx:           ctx,
+			name:          name,
+			path:          path,
+		}, nil
 	}
+}
+
+// getPath
+func getPath(name string) string {
+	return os.Getenv("HOME") + cfg.Cog.Storage.Dir + string(rune(filepath.Separator)) + name
 }
 
 // newStorage
 func newStorage(name string) (billy.Filesystem, storage.Storer) {
-	fs := osfs.New(
-		os.Getenv("HOME") + cfg.Cog.Storage.Dir + "/" + name,
-	)
+	fs := osfs.New(getPath(name))
 
 	return fs, filesystem.NewStorage(
 		fs,
 		cache.NewObjectLRUDefault(),
 	)
-}
-
-// GetRepoByName
-func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
-	fs, storage := newStorage(name)
-	if repository, err := git.Open(storage, nil); err != nil {
-		return nil, err
-	} else {
-		return &Repo{
-			ctx:        ctx,
-			fs:         fs,
-			storage:    storage,
-			loader:     &serverLoader{storage: storage},
-			repository: repository,
-		}, nil
-	}
 }

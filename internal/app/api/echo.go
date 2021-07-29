@@ -63,8 +63,7 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 		}
 	})
 	eg.GET("/info/refs", toEchoHandler(repoController.InfoRefs))
-	eg.POST("/git-receive-pack", toEchoHandler(repoController.ReceivePack))
-	eg.POST("/git-upload-pack", toEchoHandler(repoController.UploadPack))
+	eg.POST("/:service", toEchoHandler(repoController.ServePack))
 
 	//
 	// Register GraphQL
