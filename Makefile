@@ -11,13 +11,14 @@ MIGRATIONS_DIR:=$(ROOT_DIR)/migrations
 build: clean pkger orm
 	go build -o regeet
 
-pkger:
-	rm -f pkged.go
-	pkger
-
 # Clean-Up
 clean:
 	rm -f regeet
+
+# Static Packing
+pkger:
+	rm -f pkged.go
+	pkger
 
 # Generate ORM
 orm:
