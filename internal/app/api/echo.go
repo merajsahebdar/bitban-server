@@ -37,8 +37,8 @@ import (
 	"regeet.io/api/internal/pkg/util"
 )
 
-// toEchoHandler
-func toEchoHandler(h func(context.Context) error) echo.HandlerFunc {
+// echoHandlerFrom
+func echoHandlerFrom(h func(context.Context) error) echo.HandlerFunc {
 	return func(ec echo.Context) error {
 		return h(ec.Request().Context())
 	}
@@ -56,14 +56,9 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 	//
 	// Register Git
 
-	eg := ee.Group("/-/:name", func(hf echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			cfg.Log.Info("got a git client request", zap.String("path", c.Request().URL.Path), zap.String("query", c.Request().URL.RawQuery))
-			return hf(c)
-		}
-	})
-	eg.GET("/info/refs", toEchoHandler(repoController.InfoRefs))
-	eg.POST("/:service", toEchoHandler(repoController.ServePack))
+	eg := ee.Group("/:name")
+	eg.GET("/info/refs", echoHandlerFrom(repoController.InfoRefs))
+	eg.POST("/:service", echoHandlerFrom(repoController.ServePack))
 
 	//
 	// Register GraphQL
