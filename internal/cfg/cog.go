@@ -24,17 +24,13 @@ const (
 	GitBackendGo  GitBackend = "go"
 )
 
-// String
-func (b GitBackend) String() string {
-	switch b {
-	case GitBackendBin:
-		return "bin"
-	case GitBackendGo:
-		return "go"
-	}
+// GitStorage
+type GitStorage string
 
-	panic("git backend not implemented")
-}
+const (
+	GitStorageMem GitStorage = "mem"
+	GitStorageFs  GitStorage = "fs"
+)
 
 // Cog
 var Cog struct {
@@ -44,6 +40,7 @@ var Cog struct {
 	} `yaml:"app"`
 	Git struct {
 		Backend GitBackend `yaml:"backend"`
+		Storage GitStorage `yaml:"storage"`
 	} `yaml:"git"`
 	Security struct {
 		AccessTokenExpiresAt  int `yaml:"accessTokenExpiresAt" default:"60"`

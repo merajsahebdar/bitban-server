@@ -5,6 +5,7 @@ app:
 
 git:
   backend: "go"
+  storage: "mem"
 
 database:
   host: ${PSQL_HOST}

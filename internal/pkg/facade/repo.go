@@ -18,6 +18,7 @@ package facade
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"strings"
 
@@ -33,6 +34,7 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/server"
 	"github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
+	"github.com/go-git/go-git/v5/storage/memory"
 	gossh "golang.org/x/crypto/ssh"
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/exec"
@@ -278,39 +280,52 @@ func (f *Repo) ServePack(serveConfig *ServerPackConfig) error {
 
 // GetRepoByName
 func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
-	if path, err := cfg.GetVarPath("/repos", name); err != nil {
-		return nil, err
+	var err error
+	var path string
+
+	if cfg.Cog.Git.Storage == cfg.GitStorageFs {
+		if path, err = cfg.GetVarPath("/repos", name); err != nil {
+			return nil, git.ErrRepositoryNotExists
+		}
 	} else {
-		var backend *repoGoBackend
-		if cfg.IsGoBackend() {
-			fs, storage := newStorage(path)
-			if repository, err := git.Open(storage, nil); err != nil {
-				return nil, err
-			} else {
-				backend = &repoGoBackend{
-					fs:         fs,
-					storage:    storage,
-					loader:     &serverLoader{storage: storage},
-					repository: repository,
-				}
+		path = "mem:repos:" + name
+	}
+
+	var backend *repoGoBackend
+	if cfg.IsGoBackend() {
+		fs, storage := newStorage(path)
+		if repository, err := git.Open(storage, nil); err != nil {
+			return nil, err
+		} else {
+			backend = &repoGoBackend{
+				fs:         fs,
+				storage:    storage,
+				loader:     &serverLoader{storage: storage},
+				repository: repository,
 			}
 		}
-
-		return &Repo{
-			repoGoBackend: backend,
-			ctx:           ctx,
-			name:          name,
-			path:          path,
-		}, nil
 	}
+
+	return &Repo{
+		repoGoBackend: backend,
+		ctx:           ctx,
+		name:          name,
+		path:          path,
+	}, nil
 }
 
 // newStorage
 func newStorage(path string) (billy.Filesystem, storage.Storer) {
-	fs := osfs.New(path)
+	switch cfg.Cog.Git.Storage {
+	case cfg.GitStorageFs:
+		fs := osfs.New(path)
+		return fs, filesystem.NewStorage(
+			fs,
+			cache.NewObjectLRUDefault(),
+		)
+	case cfg.GitStorageMem:
+		return nil, memory.NewStorage()
+	}
 
-	return fs, filesystem.NewStorage(
-		fs,
-		cache.NewObjectLRUDefault(),
-	)
+	panic(fmt.Errorf("invalid git storage: %s", cfg.Cog.Git.Storage))
 }
