@@ -15,6 +15,11 @@ build: clean pkger orm
 clean:
 	rm -f regeet
 
+# Deps
+deps: export GO111MODULE=off
+deps:
+	go get github.com/joho/godotenv/cmd/godotenv
+
 # Static Packing
 pkger:
 	rm -f pkged.go
