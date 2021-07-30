@@ -17,13 +17,16 @@
 package cfg
 
 import (
+	"io"
 	"io/ioutil"
 	"os"
 
 	"github.com/creasty/defaults"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
+	"github.com/markbates/pkger"
 	"go.uber.org/zap"
+	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 )
@@ -86,21 +89,30 @@ func init() {
 	//
 	// Feed `Cog`
 
-	f, err := GetEtcPath("/cog.yaml")
-	if err != nil {
-		Log.Fatal(err.Error())
-	}
+	var content []byte
 
-	content, err := ioutil.ReadFile(f)
-	if err != nil {
-		Log.Fatal(err.Error())
+	if f, err := GetEtcPath("/cog.yaml"); err != nil {
+		if pak, err := pkger.Open("/configs/cog.yml"); err != nil {
+			Log.Fatal(err.Error())
+		} else {
+			defer pak.Close()
+
+			var c buffer.Buffer
+			io.Copy(&c, pak)
+			content = c.Bytes()
+		}
+	} else {
+		if c, err := ioutil.ReadFile(f); err != nil {
+			Log.Fatal(err.Error())
+		} else {
+			content = c
+		}
 	}
 
 	// Replace environment values in config content.
 	content = []byte(os.ExpandEnv(string(content)))
 
-	err = yaml.Unmarshal(content, &Cog)
-	if err != nil {
+	if err := yaml.Unmarshal(content, &Cog); err != nil {
 		Log.Fatal(err.Error())
 	}
 
