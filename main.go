@@ -56,7 +56,7 @@ type MigrateDownCmd struct{}
 // Run Drops migrations.
 func (cmd *MigrateDownCmd) Run() error {
 	migrate.SetTable("migrations")
-	droppedCount, err := migrate.Exec(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Down)
+	droppedCount, err := migrate.ExecMax(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Down, 1)
 	if err != nil {
 		cfg.Log.Fatal("failed to drop migrations", zap.String("error", err.Error()))
 	}
