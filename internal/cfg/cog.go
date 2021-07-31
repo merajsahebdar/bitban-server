@@ -41,6 +41,11 @@ var Cog struct {
 	Git struct {
 		Backend GitBackend `yaml:"backend"`
 		Storage GitStorage `yaml:"storage"`
+		Configs struct {
+			Init struct {
+				DefaultBranch string `yaml:"defaultBranch" default:"main"`
+			} `yaml:"init"`
+		} `yaml:"configs"`
 	} `yaml:"git"`
 	Security struct {
 		AccessTokenExpiresAt  int `yaml:"accessTokenExpiresAt" default:"60"`

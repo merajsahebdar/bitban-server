@@ -21,10 +21,13 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 
 	"github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/cache"
 	"github.com/go-git/go-git/v5/plumbing/format/pktline"
 	"github.com/go-git/go-git/v5/plumbing/protocol/packp"
@@ -34,7 +37,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/server"
 	"github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
-	"github.com/go-git/go-git/v5/storage/memory"
 	gossh "golang.org/x/crypto/ssh"
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/exec"
@@ -278,22 +280,65 @@ func (f *Repo) ServePack(serveConfig *ServerPackConfig) error {
 	}
 }
 
-// GetRepoByName
-func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
-	var err error
-	var path string
-
-	if cfg.Cog.Git.Storage == cfg.GitStorageFs {
-		if path, err = cfg.GetVarPath("/repos", name); err != nil {
-			return nil, git.ErrRepositoryNotExists
-		}
-	} else {
-		path = "mem:repos:" + name
+// CreateRepoByName
+func CreateRepoByName(ctx context.Context, name string) (*Repo, error) {
+	path, err := getPath(name)
+	if err != nil {
+		return nil, err
 	}
 
 	var backend *repoGoBackend
 	if cfg.IsGoBackend() {
-		fs, storage := newStorage(path)
+		fs, storage, err := newStorage(path)
+		if err != nil {
+			return nil, err
+		}
+
+		if repository, err := git.Init(storage, nil); err != nil {
+			return nil, err
+		} else {
+			head := plumbing.NewSymbolicReference(
+				plumbing.HEAD,
+				plumbing.ReferenceName(fmt.Sprintf(
+					"refs/heads/%s",
+					cfg.Cog.Git.Configs.Init.DefaultBranch,
+				)),
+			)
+			if err := storage.SetReference(head); err != nil {
+				return nil, err
+			}
+
+			backend = &repoGoBackend{
+				fs:         fs,
+				storage:    storage,
+				loader:     &serverLoader{storage: storage},
+				repository: repository,
+			}
+		}
+	}
+
+	return &Repo{
+		repoGoBackend: backend,
+		ctx:           ctx,
+		name:          name,
+		path:          path,
+	}, nil
+}
+
+// GetRepoByName
+func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
+	path, err := getPath(name)
+	if err != nil {
+		return nil, err
+	}
+
+	var backend *repoGoBackend
+	if cfg.IsGoBackend() {
+		fs, storage, err := newStorage(path)
+		if err != nil {
+			return nil, err
+		}
+
 		if repository, err := git.Open(storage, nil); err != nil {
 			return nil, err
 		} else {
@@ -314,18 +359,56 @@ func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
 	}, nil
 }
 
+// getPath
+func getPath(name string) (path string, err error) {
+	if cfg.Cog.Git.Storage == cfg.GitStorageFs {
+		if path, err = cfg.GetVarPath("/repos", name); err != nil {
+			return "", git.ErrRepositoryNotExists
+		}
+	} else {
+		path = "/repos/" + name
+	}
+
+	return path, nil
+}
+
 // newStorage
-func newStorage(path string) (billy.Filesystem, storage.Storer) {
-	switch cfg.Cog.Git.Storage {
-	case cfg.GitStorageFs:
-		fs := osfs.New(path)
+func newStorage(path string) (billy.Filesystem, storage.Storer, error) {
+	if fs, err := getFs(path); err != nil {
+		return nil, nil, err
+	} else {
 		return fs, filesystem.NewStorage(
 			fs,
 			cache.NewObjectLRUDefault(),
-		)
-	case cfg.GitStorageMem:
-		return nil, memory.NewStorage()
+		), nil
+	}
+}
+
+// fsMutex
+var fsMutex = &sync.Mutex{}
+
+// fs
+var fs billy.Filesystem
+
+// getFs
+func getFs(path string) (billy.Filesystem, error) {
+	if fs == nil {
+		fsMutex.Lock()
+		defer fsMutex.Unlock()
+
+		if fs == nil {
+			switch cfg.Cog.Git.Storage {
+			case cfg.GitStorageFs:
+				if p, err := cfg.GetVarPath("/repos"); err != nil {
+					return nil, err
+				} else {
+					fs = osfs.New(p)
+				}
+			case cfg.GitStorageMem:
+				fs = memfs.New()
+			}
+		}
 	}
 
-	panic(fmt.Errorf("invalid git storage: %s", cfg.Cog.Git.Storage))
+	return fs.Chroot(path)
 }

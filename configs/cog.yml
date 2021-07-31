@@ -4,8 +4,11 @@ app:
   port: ${APP_PORT}
 
 git:
-  backend: "go"
-  storage: "mem"
+  backend: go
+  storage: mem
+  configs:
+    init:
+      defaultBranch: main
 
 database:
   host: ${PSQL_HOST}
