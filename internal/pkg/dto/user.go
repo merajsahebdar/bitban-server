@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/volatiletech/null/v8"
-	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/internal/pkg/db/orm"
 )
 
 const (

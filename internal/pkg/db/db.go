@@ -26,6 +26,8 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/markbates/pkger"
 	migrate "github.com/rubenv/sql-migrate"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
 	"go.uber.org/zap"
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/util"
@@ -65,8 +67,8 @@ func connectToDatabase() *sql.DB {
 	return db
 }
 
-// dbConnectionLock
-var dbConnectionLock = &sync.Mutex{}
+// dbConnectionMutex
+var dbConnectionMutex = &sync.Mutex{}
 
 // dbInstance Keeps a singleton instance of database connection.
 var dbInstance *sql.DB
@@ -74,8 +76,8 @@ var dbInstance *sql.DB
 // GetDbInstance
 func GetDbInstance() *sql.DB {
 	if dbInstance == nil {
-		dbConnectionLock.Lock()
-		defer dbConnectionLock.Unlock()
+		dbConnectionMutex.Lock()
+		defer dbConnectionMutex.Unlock()
 
 		if dbInstance == nil {
 			dbInstance = connectToDatabase()
@@ -106,4 +108,27 @@ func GetMigration() migrate.HttpFileSystemMigrationSource {
 	}
 
 	return migration
+}
+
+// bunInstanceMutex
+var bunInstanceMutex = &sync.Mutex{}
+
+// bunInstance
+var bunInstance *bun.DB
+
+// GetBunInstance
+func GetBunInstance() *bun.DB {
+	if bunInstance == nil {
+		bunInstanceMutex.Lock()
+		defer bunInstanceMutex.Unlock()
+
+		if bunInstance == nil {
+			bunInstance = bun.NewDB(
+				GetDbInstance(),
+				pgdialect.New(),
+			)
+		}
+	}
+
+	return bunInstance
 }

@@ -18,17 +18,14 @@ package auth
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"strings"
 
 	"github.com/casbin/casbin/v2/model"
 	"github.com/casbin/casbin/v2/persist"
+	"github.com/uptrace/bun"
 	"github.com/volatiletech/null/v8"
-	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"regeet.io/api/internal/pkg/db"
-	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/internal/pkg/db/orm"
 )
 
 // Adapter
@@ -40,63 +37,64 @@ type Adapter interface {
 
 // adapter
 type adapter struct {
-	db *sql.DB
+	db *bun.DB
 }
 
 // newAdapter
 func newAdapter() (*adapter, error) {
 	return &adapter{
-		db: db.GetDbInstance(),
+		db: db.GetBunInstance(),
 	}, nil
 }
 
 // loadPolicyLine
-func (a *adapter) loadPolicyLine(m model.Model, p *orm.CasbinRule) {
-	line := []string{p.Ptype, p.V0, p.V1, p.V2, p.V3.String, p.V4.String, p.V5.String}
+func (a *adapter) loadPolicyLine(m model.Model, line *orm.CasbinRule) {
+	arr := []string{line.Ptype, line.V0, line.V1, line.V2, line.V3.String, line.V4.String, line.V5.String}
 
 	var texted string
-	if !p.V5.IsZero() {
-		texted = strings.Join(line, ", ")
-	} else if !p.V4.IsZero() {
-		texted = strings.Join(line[:6], ", ")
-	} else if !p.V3.IsZero() {
-		texted = strings.Join(line[:5], ", ")
-	} else if p.V2 != "" {
-		texted = strings.Join(line[:4], ", ")
-	} else if p.V1 != "" {
-		texted = strings.Join(line[:3], ", ")
-	} else if p.V0 != "" {
-		texted = strings.Join(line[:2], ", ")
+	if !line.V5.IsZero() {
+		texted = strings.Join(arr, ", ")
+	} else if !line.V4.IsZero() {
+		texted = strings.Join(arr[:6], ", ")
+	} else if !line.V3.IsZero() {
+		texted = strings.Join(arr[:5], ", ")
+	} else if line.V2 != "" {
+		texted = strings.Join(arr[:4], ", ")
+	} else if line.V1 != "" {
+		texted = strings.Join(arr[:3], ", ")
+	} else if line.V0 != "" {
+		texted = strings.Join(arr[:2], ", ")
 	}
 
 	persist.LoadPolicyLine(texted, m)
 }
 
 // savePolicyLine
-func (*adapter) savePolicyLine(ptype string, rule []string) orm.CasbinRule {
-	p := orm.CasbinRule{}
+func (*adapter) savePolicyLine(ptype string, rule []string) *orm.CasbinRule {
+	line := &orm.CasbinRule{
+		Ptype: ptype,
+	}
 
-	p.Ptype = ptype
 	if len(rule) > 0 {
-		p.V0 = rule[0]
+		line.V0 = rule[0]
 	}
 	if len(rule) > 1 {
-		p.V1 = rule[1]
+		line.V1 = rule[1]
 	}
 	if len(rule) > 2 {
-		p.V2 = rule[2]
+		line.V2 = rule[2]
 	}
 	if len(rule) > 3 {
-		p.V3 = null.StringFrom(rule[3])
+		line.V3 = null.StringFrom(rule[3])
 	}
 	if len(rule) > 4 {
-		p.V4 = null.StringFrom(rule[4])
+		line.V4 = null.StringFrom(rule[4])
 	}
 	if len(rule) > 5 {
-		p.V5 = null.StringFrom(rule[5])
+		line.V5 = null.StringFrom(rule[5])
 	}
 
-	return p
+	return line
 }
 
 // IsFiltered
@@ -106,9 +104,9 @@ func (*adapter) IsFiltered() bool {
 
 // AddPolicy
 func (a *adapter) AddPolicy(sec string, ptype string, rule []string) error {
-	p := a.savePolicyLine(ptype, rule)
+	line := a.savePolicyLine(ptype, rule)
 
-	if err := p.Insert(context.Background(), a.db, boil.Infer()); err != nil {
+	if _, err := a.db.NewInsert().Model(line).Exec(context.Background()); err != nil {
 		return err
 	}
 
@@ -119,8 +117,8 @@ func (a *adapter) AddPolicy(sec string, ptype string, rule []string) error {
 func (a *adapter) AddPolicies(sec string, ptype string, rules [][]string) error {
 	var err error
 
-	var tx *sql.Tx
-	if tx, err = a.db.Begin(); err != nil {
+	var tx bun.Tx
+	if tx, err = a.db.BeginTx(context.Background(), nil); err != nil {
 		return err
 	}
 
@@ -129,8 +127,8 @@ func (a *adapter) AddPolicies(sec string, ptype string, rules [][]string) error 
 	}()
 
 	for _, rule := range rules {
-		p := a.savePolicyLine(ptype, rule)
-		if err = p.Insert(context.Background(), tx, boil.Infer()); err != nil {
+		line := a.savePolicyLine(ptype, rule)
+		if _, err = a.db.NewInsert().Model(line).Exec(context.Background()); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -141,37 +139,18 @@ func (a *adapter) AddPolicies(sec string, ptype string, rules [][]string) error 
 
 // LoadFilteredPolicy
 func (a *adapter) LoadFilteredPolicy(m model.Model, filter interface{}) error {
-	var err error
-
-	var ok bool
-	var mods []qm.QueryMod
-	if mods, ok = filter.([]qm.QueryMod); !ok {
-		return errors.New("invalid adapter filter")
-	}
-
-	var policies orm.CasbinRuleSlice
-	if policies, err = orm.CasbinRules(mods...).All(context.Background(), a.db); err != nil {
-		return err
-	}
-
-	for _, p := range policies {
-		a.loadPolicyLine(m, p)
-	}
-
 	return nil
 }
 
 // LoadPolicy
 func (a *adapter) LoadPolicy(m model.Model) error {
-	var err error
-
-	var policies orm.CasbinRuleSlice
-	if policies, err = orm.CasbinRules().All(context.Background(), a.db); err != nil {
+	var lines []*orm.CasbinRule
+	if err := a.db.NewSelect().Model(&lines).Scan(context.Background()); err != nil {
 		return err
 	}
 
-	for _, p := range policies {
-		a.loadPolicyLine(m, p)
+	for _, line := range lines {
+		a.loadPolicyLine(m, line)
 	}
 
 	return nil

@@ -18,21 +18,19 @@ package facade
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
 	gojwt "github.com/dgrijalva/jwt-go"
+	"github.com/uptrace/bun"
 	"github.com/volatiletech/null/v8"
-	"github.com/volatiletech/sqlboiler/v4/boil"
-	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/auth"
 	"regeet.io/api/internal/pkg/db"
+	"regeet.io/api/internal/pkg/db/orm"
 	"regeet.io/api/internal/pkg/dto"
 	"regeet.io/api/internal/pkg/fault"
 	"regeet.io/api/internal/pkg/jwt"
-	"regeet.io/api/internal/pkg/orm"
 	"regeet.io/api/internal/pkg/util"
 )
 
@@ -46,33 +44,9 @@ const defaultDomain = "_"
 type (
 	// Account
 	Account struct {
-		ctx         context.Context
-		user        *orm.User
-		userEmail   *orm.UserEmail
-		userProfile *orm.UserProfile
+		ctx  context.Context
+		user *orm.User
 	}
-
-	// accountBinder
-	accountBinder struct {
-		User        orm.User        `boil:"users,bind"`
-		UserEmail   orm.UserEmail   `boil:"user_emails,bind"`
-		UserProfile orm.UserProfile `boil:"user_profiles,bind"`
-	}
-)
-
-var (
-	// accountColumnsSelection
-	accountColumnsSelection = qm.Select(
-		orm.UserTableColumns.ID,
-		orm.UserTableColumns.Password,
-		orm.UserEmailTableColumns.ID,
-		orm.UserEmailTableColumns.Address,
-		orm.UserEmailTableColumns.UserID,
-		orm.UserProfileTableColumns.ID,
-		orm.UserProfileTableColumns.Name,
-		orm.UserProfileTableColumns.Meta,
-		orm.UserProfileTableColumns.UserID,
-	)
 )
 
 // GetUser
@@ -119,10 +93,14 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 	comp := jwt.GetJwtInstance()
 
 	userToken := &orm.UserToken{
-		Meta:   []byte(`{}`),
+		Meta:   struct{}{},
 		UserID: null.Int64From(f.user.ID),
 	}
-	if err = userToken.Insert(f.ctx, db.GetDbInstance(), boil.Infer()); err != nil {
+	if _, err = db.GetBunInstance().
+		NewInsert().
+		Model(userToken).
+		Column("meta", "user_id").
+		Exec(f.ctx); err != nil {
 		return "", err
 	}
 
@@ -148,38 +126,39 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 
 // GetAccountByPassword
 //
-// If was not able to find the corresponding account, returns `common.ErrUserInput`.
+// If was not able to find the corresponding account, returns `fault.ErrUserInput`.
 func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account, error) {
-	var err error
-
-	var binder accountBinder
-	if err = orm.NewQuery(
-		accountColumnsSelection,
-		qm.From(`"users"`),
-		qm.InnerJoin(`"user_emails" ON "user_emails"."user_id" = "users"."id"`),
-		qm.InnerJoin(`"user_profiles" ON "user_profiles"."user_id" = "users"."id"`),
-		orm.UserWhere.IsActive.EQ(true),
-		orm.UserWhere.IsBanned.EQ(false),
-		orm.UserWhere.RemovedAt.IsNull(),
-		orm.UserEmailWhere.Address.EQ(input.Identifier),
-		orm.UserEmailWhere.IsPrimary.EQ(true),
-		orm.UserEmailWhere.IsVerified.EQ(true),
-		orm.UserEmailWhere.RemovedAt.IsNull(),
-	).Bind(ctx, db.GetDbInstance(), &binder); err != nil {
+	userPrimaryEmail := new(orm.UserEmail)
+	if err := db.GetBunInstance().
+		NewSelect().
+		Model(userPrimaryEmail).
+		Relation("User", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.Where("? = ?", bun.Ident("user.is_active"), true).
+				Where("? = ?", bun.Ident("user.is_banned"), false).
+				Where("? IS NULL", bun.Ident("user.removed_at"), nil)
+		}).
+		Relation("User.Profile", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.Where("? IS NULL", bun.Ident("user__profile.removed_at"))
+		}).
+		Where("? = ?", bun.Ident("user_email.address"), input.Identifier).
+		Where("? = ?", bun.Ident("user_email.is_primary"), true).
+		Where("? = ?", bun.Ident("user_email.is_verified"), true).
+		Where("? IS NULL", bun.Ident("user_email.removed_at")).
+		Limit(1).
+		Scan(ctx); fault.IsNonResourceNotFoundError(err) {
 		return nil, err
-	} else if binder.User == (orm.User{}) {
+	} else if fault.IsResourceNotFoundError(err) {
 		return nil, fault.ErrUserInput
 	}
 
-	if binder.User.Password.IsZero() || !util.ComparePassword(binder.User.Password.String, input.Password) {
+	user := userPrimaryEmail.User
+	if user == nil || user.Password.IsZero() || !util.ComparePassword(user.Password.String, input.Password) {
 		return nil, fault.ErrUserInput
 	}
 
 	return &Account{
-		ctx:         ctx,
-		user:        &binder.User,
-		userEmail:   &binder.UserEmail,
-		userProfile: &binder.UserProfile,
+		ctx:  ctx,
+		user: user,
 	}, nil
 }
 
@@ -194,11 +173,13 @@ func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, er
 
 // GetAccountByUserId
 func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
-	if user, err := orm.FindUser(
-		ctx,
-		db.GetDbInstance(),
-		id,
-	); err != nil {
+	user := new(orm.User)
+	if err := db.GetBunInstance().
+		NewSelect().
+		Model(user).
+		Where("? = ?", bun.Ident("user.id"), id).
+		Limit(1).
+		Scan(ctx); err != nil {
 		return nil, err
 	} else {
 		return &Account{
@@ -210,8 +191,8 @@ func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
 
 // CreateAccount
 func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account, err error) {
-	var tx *sql.Tx
-	if tx, err = db.GetDbInstance().BeginTx(ctx, nil); err != nil {
+	var tx bun.Tx
+	if tx, err = db.GetBunInstance().BeginTx(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -234,7 +215,11 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 		IsActive: true,
 		IsBanned: false,
 	}
-	if err = user.Insert(ctx, tx, boil.Infer()); err != nil {
+	if _, err = tx.NewInsert().
+		Model(user).
+		Column("password", "is_active", "is_banned").
+		Returning("id", "created_at", "updated_at").
+		Exec(ctx); err != nil {
 		return nil, err
 	}
 
@@ -247,7 +232,10 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 		IsPrimary:  true,
 		UserID:     null.Int64From(user.ID),
 	}
-	if err = userEmail.Insert(ctx, tx, boil.Infer()); err != nil {
+	if _, err = tx.NewInsert().
+		Model(userEmail).
+		Column("address", "is_verified", "is_primary", "user_id").
+		Exec(ctx); err != nil {
 		return nil, err
 	}
 
@@ -256,12 +244,18 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 
 	userProfile := &orm.UserProfile{
 		Name:   input.Profile.Name,
-		Meta:   []byte(`{}`),
+		Meta:   struct{}{},
 		UserID: null.Int64From(user.ID),
 	}
-	if err = userProfile.Insert(ctx, tx, boil.Infer()); err != nil {
+	if _, err = tx.NewInsert().
+		Model(userProfile).
+		Column("name", "meta", "user_id").
+		Exec(ctx); err != nil {
 		return nil, err
 	}
+
+	user.Emails = append(user.Emails, userEmail)
+	user.Profile = userProfile
 
 	//
 	// Last Step!
@@ -283,10 +277,8 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	}
 
 	account = &Account{
-		ctx:         ctx,
-		user:        user,
-		userEmail:   userEmail,
-		userProfile: userProfile,
+		ctx:  ctx,
+		user: user,
 	}
 
 	return account, nil

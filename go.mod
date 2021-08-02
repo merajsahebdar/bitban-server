@@ -9,7 +9,6 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.1
 	github.com/creasty/defaults v1.5.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/friendsofgo/errors v0.9.2
 	github.com/go-git/go-billy/v5 v5.3.1
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-playground/locales v0.13.0
@@ -24,10 +23,10 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.7 // indirect
 	github.com/nrfta/go-graphql-scalars v0.2.0
 	github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
+	github.com/uptrace/bun v0.3.9
+	github.com/uptrace/bun/dialect/pgdialect v0.3.9
 	github.com/vektah/gqlparser/v2 v2.2.0
 	github.com/volatiletech/null/v8 v8.1.2
-	github.com/volatiletech/sqlboiler/v4 v4.6.0
-	github.com/volatiletech/strmangle v0.0.1
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/fx v1.13.1
 	go.uber.org/zap v1.16.0

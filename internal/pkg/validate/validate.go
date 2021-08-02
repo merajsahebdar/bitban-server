@@ -25,9 +25,10 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
+	"github.com/uptrace/bun"
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/db"
-	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/internal/pkg/db/orm"
 )
 
 // phoneRegexp
@@ -82,27 +83,25 @@ func GetValidateInstance() *validator.Validate {
 			//
 			// Unique Validation
 
-			ctx := context.Background()
-
 			v.RegisterValidation("notexistsin", func(fl validator.FieldLevel) bool {
 				param := strings.Fields(fl.Param())
 				datasource := param[0]
 				property := param[1]
 
 				switch datasource {
-				case orm.TableNames.UserEmails:
+				case "user_emails":
 					switch property {
 					case "address":
 						address := fl.Field().String()
-						var err error
-						var exists bool
-						if exists, err = orm.UserEmails(
-							orm.UserEmailWhere.Address.EQ(address),
-						).Exists(ctx, db.GetDbInstance()); err != nil {
+						if count, err := db.GetBunInstance().
+							NewSelect().
+							Model(new(orm.UserEmail)).
+							Where("? = ?", bun.Ident("user_email.address"), address).
+							Count(context.Background()); err != nil {
 							panic(err)
+						} else {
+							return count == 0
 						}
-
-						return !exists
 					}
 				}
 
