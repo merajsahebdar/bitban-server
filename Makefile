@@ -25,10 +25,6 @@ pkger:
 	rm -f pkged.go
 	pkger
 
-# Generate ORM
-orm:
-	godotenv sqlboiler psql
-
 # Generate GraphQL Server and Schema
 schema:
 	rm -f internal/schema/server.go
