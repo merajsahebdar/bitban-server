@@ -26,11 +26,11 @@ import (
 	"github.com/volatiletech/null/v8"
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/auth"
-	"regeet.io/api/internal/pkg/db"
-	"regeet.io/api/internal/pkg/db/orm"
 	"regeet.io/api/internal/pkg/dto"
 	"regeet.io/api/internal/pkg/fault"
 	"regeet.io/api/internal/pkg/jwt"
+	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/internal/pkg/orm/entity"
 	"regeet.io/api/internal/pkg/util"
 )
 
@@ -45,12 +45,12 @@ type (
 	// Account
 	Account struct {
 		ctx  context.Context
-		user *orm.User
+		user *entity.User
 	}
 )
 
 // GetUser
-func (f *Account) GetUser() *orm.User {
+func (f *Account) GetUser() *entity.User {
 	return f.user
 }
 
@@ -92,11 +92,11 @@ func (f *Account) CreateAccessToken() (accessToken string, err error) {
 func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 	comp := jwt.GetJwtInstance()
 
-	userToken := &orm.UserToken{
+	userToken := &entity.UserToken{
 		Meta:   struct{}{},
 		UserID: null.Int64From(f.user.ID),
 	}
-	if _, err = db.GetBunInstance().
+	if _, err = orm.GetBunInstance().
 		NewInsert().
 		Model(userToken).
 		Column("meta", "user_id").
@@ -128,8 +128,8 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 //
 // If was not able to find the corresponding account, returns `fault.ErrUserInput`.
 func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account, error) {
-	userPrimaryEmail := new(orm.UserEmail)
-	if err := db.GetBunInstance().
+	userPrimaryEmail := new(entity.UserEmail)
+	if err := orm.GetBunInstance().
 		NewSelect().
 		Model(userPrimaryEmail).
 		Relation("User", func(sq *bun.SelectQuery) *bun.SelectQuery {
@@ -163,7 +163,7 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 }
 
 // GetAccountByUser
-func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, err error) {
+func GetAccountByUser(ctx context.Context, user *entity.User) (account *Account, err error) {
 	account = &Account{
 		ctx:  ctx,
 		user: user,
@@ -173,8 +173,8 @@ func GetAccountByUser(ctx context.Context, user *orm.User) (account *Account, er
 
 // GetAccountByUserId
 func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
-	user := new(orm.User)
-	if err := db.GetBunInstance().
+	user := new(entity.User)
+	if err := orm.GetBunInstance().
 		NewSelect().
 		Model(user).
 		Where("? = ?", bun.Ident("user.id"), id).
@@ -192,7 +192,7 @@ func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
 // CreateAccount
 func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account, err error) {
 	var tx bun.Tx
-	if tx, err = db.GetBunInstance().BeginTx(ctx, nil); err != nil {
+	if tx, err = orm.GetBunInstance().BeginTx(ctx, nil); err != nil {
 		return nil, err
 	}
 
@@ -210,7 +210,7 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 		return nil, err
 	}
 
-	user := &orm.User{
+	user := &entity.User{
 		Password: null.StringFrom(hashedPassword),
 		IsActive: true,
 		IsBanned: false,
@@ -226,7 +226,7 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	//
 	// Create User's Email
 
-	userEmail := &orm.UserEmail{
+	userEmail := &entity.UserEmail{
 		Address:    input.PrimaryEmail.Address,
 		IsVerified: true,
 		IsPrimary:  true,
@@ -242,7 +242,7 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	//
 	// Create User's Profile
 
-	userProfile := &orm.UserProfile{
+	userProfile := &entity.UserProfile{
 		Name:   input.Profile.Name,
 		Meta:   struct{}{},
 		UserID: null.Int64From(user.ID),

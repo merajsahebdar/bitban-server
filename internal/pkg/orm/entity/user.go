@@ -14,25 +14,32 @@
  * limitations under the License.
  */
 
-package orm
+package entity
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/uptrace/bun"
 	"github.com/volatiletech/null/v8"
 )
 
-// UserEmail
-type UserEmail struct {
-	bun.BaseModel `bun:"user_emails,select:user_emails,alias:user_email"`
-	ID            int64      `bun:"id"`
-	CreatedAt     time.Time  `bun:"created_at"`
-	UpdatedAt     time.Time  `bun:"updated_at"`
-	RemovedAt     null.Time  `bun:"removed_at"`
-	Address       string     `bun:"address"`
-	IsVerified    bool       `bun:"is_verified"`
-	IsPrimary     bool       `bun:"is_primary"`
-	UserID        null.Int64 `bun:"user_id"`
-	User          *User      `bun:"rel:belongs-to"`
+// User
+type User struct {
+	bun.BaseModel `bun:"users,select:users,alias:user"`
+	ID            int64        `bun:"id"`
+	CreatedAt     time.Time    `bun:"created_at"`
+	UpdatedAt     time.Time    `bun:"updated_at"`
+	RemovedAt     null.Time    `bun:"removed_at"`
+	Password      null.String  `bun:"password"`
+	IsActive      bool         `bun:"is_active"`
+	IsBanned      bool         `bun:"is_banned"`
+	Emails        []*UserEmail `bun:"rel:has-many"`
+	Tokens        []*UserToken `bun:"rel:has-many"`
+	Profile       *UserProfile `bun:"rel:has-one"`
+}
+
+// String
+func (e *User) String() string {
+	return fmt.Sprintf("User<%d, %t, %t>", e.ID, e.IsActive, e.IsBanned)
 }

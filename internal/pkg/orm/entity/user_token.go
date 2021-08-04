@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package orm
+package entity
 
 import (
 	"time"
@@ -23,17 +23,14 @@ import (
 	"github.com/volatiletech/null/v8"
 )
 
-// User
-type User struct {
-	bun.BaseModel `bun:"users,select:users,alias:user"`
-	ID            int64        `bun:"id"`
-	CreatedAt     time.Time    `bun:"created_at"`
-	UpdatedAt     time.Time    `bun:"updated_at"`
-	RemovedAt     null.Time    `bun:"removed_at"`
-	Password      null.String  `bun:"password"`
-	IsActive      bool         `bun:"is_active"`
-	IsBanned      bool         `bun:"is_banned"`
-	Emails        []*UserEmail `bun:"rel:has-many"`
-	Tokens        []*UserToken `bun:"rel:has-many"`
-	Profile       *UserProfile `bun:"rel:has-one"`
+// UserToken
+type UserToken struct {
+	bun.BaseModel `bun:"user_tokens,select:user_tokens,alias:user_token"`
+	ID            int64       `bun:"id"`
+	CreatedAt     time.Time   `bun:"created_at"`
+	UpdatedAt     time.Time   `bun:"updated_at"`
+	RemovedAt     null.Time   `bun:"removed_at"`
+	Meta          interface{} `bun:"meta"`
+	UserID        null.Int64  `bun:"user_id"`
+	User          *User       `bun:"rel:belongs-to"`
 }

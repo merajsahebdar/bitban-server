@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/volatiletech/null/v8"
-	"regeet.io/api/internal/pkg/db/orm"
+	"regeet.io/api/internal/pkg/orm/entity"
 )
 
 const (
@@ -44,7 +44,7 @@ type User struct {
 func (User) IsNode() {}
 
 // UserFrom Returns an instance of model: `User` from its datasource.
-func UserFrom(user *orm.User) *User {
+func UserFrom(user *entity.User) *User {
 	if user != nil {
 		return &User{
 			ID:        ToNodeIdentifier(UserNodeType, user.ID),

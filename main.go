@@ -20,14 +20,13 @@ import (
 	"os"
 
 	"github.com/alecthomas/kong"
-	migrate "github.com/rubenv/sql-migrate"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"regeet.io/api/internal/app/api"
 	"regeet.io/api/internal/app/controller"
 	"regeet.io/api/internal/app/resolver"
 	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/db"
+	"regeet.io/api/internal/pkg/orm"
 )
 
 // MigrateUpCmd
@@ -35,13 +34,9 @@ type MigrateUpCmd struct{}
 
 // Run Applies migrations.
 func (cmd *MigrateUpCmd) Run() error {
-	migrate.SetTable("migrations")
-	appliedCount, err := migrate.Exec(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Up)
-	if err != nil {
+	if appliedCount, err := orm.MigrateUp(); err != nil {
 		cfg.Log.Fatal("failed to apply migrations", zap.String("error", err.Error()))
-	}
-
-	if appliedCount > 0 {
+	} else if appliedCount > 0 {
 		cfg.Log.Info("migrations just applied", zap.Int("appliedCount", appliedCount))
 	} else {
 		cfg.Log.Info("there are no migrations to apply")
@@ -53,15 +48,11 @@ func (cmd *MigrateUpCmd) Run() error {
 // MigrateDownCmd
 type MigrateDownCmd struct{}
 
-// Run Drops migrations.
+// Run Drops the latest migration.
 func (cmd *MigrateDownCmd) Run() error {
-	migrate.SetTable("migrations")
-	droppedCount, err := migrate.ExecMax(db.GetDbInstance(), "postgres", db.GetMigration(), migrate.Down, 1)
-	if err != nil {
+	if droppedCount, err := orm.MigrateDown(1); err != nil {
 		cfg.Log.Fatal("failed to drop migrations", zap.String("error", err.Error()))
-	}
-
-	if droppedCount > 0 {
+	} else if droppedCount > 0 {
 		cfg.Log.Info("migrations just dropped", zap.Int("droppedCount", droppedCount))
 	} else {
 		cfg.Log.Info("there are no migrations to drop")

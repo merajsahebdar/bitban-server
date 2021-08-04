@@ -1,7 +1,7 @@
 # v0.0.*
 app:
-  host: ${APP_HOST}
-  port: ${APP_PORT}
+  host: 0.0.0.0
+  port: 3000
 
 git:
   backend: go
@@ -11,14 +11,14 @@ git:
       defaultBranch: main
 
 database:
-  host: ${PSQL_HOST}
-  port: ${PSQL_PORT}
-  dbname: ${PSQL_DBNAME}
-  user: ${PSQL_USER}
-  pass: ${PSQL_PASS}
+  host: 0.0.0.0
+  port: 5432
+  dbname: regeet
+  user: regeet
+  pass: password
 
 redis:
-  url: ${REDIS_URL}
+  url: redis://0.0.0.0:6379/0
 
 security:
   accessTokenExpiresAt: 60
@@ -26,7 +26,7 @@ security:
 
 ssh:
   key:
-    passphrase: ${SSH_KEY_PASSPHRASE}
+    passphrase: password
     publicKey: |-
       LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFE
       Q0JpUUtCZ1FETE8zazJEa25IR0JRZjg0NWhLQUpjbUh6UgpNVTM2VE5lOE55R1orQSs3eW9wTDRS
@@ -54,7 +54,7 @@ ssh:
 
 jwt:
   key:
-    passphrase: ${JWT_PASSPHRASE}
+    passphrase: password
     publicKey: |-
       LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlHZk1BMEdDU3FHU0liM0RRRUJBUVVBQTRHTkFE
       Q0JpUUtCZ1FETzlNQkNTYXVRWU5EY0hZc01GWXM5VlIzZQpSWThZbXFHRERNcjdteTRaeEUxV2x0

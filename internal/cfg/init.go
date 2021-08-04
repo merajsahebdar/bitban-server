@@ -34,7 +34,7 @@ import (
 // init
 func init() {
 	//
-	// Searches for the environment.
+	// Search for the environment.
 
 	env := os.Getenv("APP_ENV")
 
@@ -42,8 +42,9 @@ func init() {
 	case "production":
 		CurrentEnv = Prod
 	case "development":
-	default:
 		CurrentEnv = Dev
+	default:
+		CurrentEnv = Test
 	}
 
 	//

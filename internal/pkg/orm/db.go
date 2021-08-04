@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package db
+package orm
 
 import (
 	"database/sql"
@@ -48,20 +48,22 @@ func connectToDatabase() *sql.DB {
 		cfg.Log.Fatal("failed to open the database", zap.String("error", err.Error()))
 	}
 
-	// Time to continue retrying
-	duration := 30 * time.Second
+	if cfg.CurrentEnv == cfg.Prod {
+		// Time to continue retrying
+		duration := 30 * time.Second
 
-	err = backoff.Retry(func() error {
-		err = db.Ping()
+		err = backoff.Retry(func() error {
+			err = db.Ping()
+			if err != nil {
+				cfg.Log.Warn("failed to establish a database connection, will attempt again...")
+			}
+
+			return err
+		}, util.NewExponentialBackoff(duration))
+
 		if err != nil {
-			cfg.Log.Warn("failed to establish a database connection, will attempt again...")
+			cfg.Log.Fatal("failed to establish a database connection", zap.Duration("backoff", duration), zap.String("error", err.Error()))
 		}
-
-		return err
-	}, util.NewExponentialBackoff(duration))
-
-	if err != nil {
-		cfg.Log.Fatal("failed to establish a database connection", zap.Duration("backoff", duration), zap.String("error", err.Error()))
 	}
 
 	return db
@@ -87,29 +89,6 @@ func GetDbInstance() *sql.DB {
 	return dbInstance
 }
 
-// migrationLock
-var migrationLock = &sync.Mutex{}
-
-// migration Keeps the database migrations
-var migration migrate.HttpFileSystemMigrationSource
-
-// GetMigration
-func GetMigration() migrate.HttpFileSystemMigrationSource {
-	empty := migrate.HttpFileSystemMigrationSource{}
-	if migration == empty {
-		migrationLock.Lock()
-		defer migrationLock.Unlock()
-
-		if migration == empty {
-			migration = migrate.HttpFileSystemMigrationSource{
-				FileSystem: pkger.Dir("/migrations"),
-			}
-		}
-	}
-
-	return migration
-}
-
 // bunInstanceMutex
 var bunInstanceMutex = &sync.Mutex{}
 
@@ -131,4 +110,39 @@ func GetBunInstance() *bun.DB {
 	}
 
 	return bunInstance
+}
+
+// migrationLock
+var migrationLock = &sync.Mutex{}
+
+// migration Keeps the database migrations
+var migration migrate.HttpFileSystemMigrationSource
+
+// GetMigration
+func GetMigration() migrate.HttpFileSystemMigrationSource {
+	empty := migrate.HttpFileSystemMigrationSource{}
+	if migration == empty {
+		migrationLock.Lock()
+		defer migrationLock.Unlock()
+
+		if migration == empty {
+			migration = migrate.HttpFileSystemMigrationSource{
+				FileSystem: pkger.Dir("/internal/pkg/orm/migration"),
+			}
+		}
+	}
+
+	return migration
+}
+
+// MigrateUp
+func MigrateUp() (int, error) {
+	migrate.SetTable("migrations")
+	return migrate.Exec(GetDbInstance(), "postgres", GetMigration(), migrate.Up)
+}
+
+// MigrateDown
+func MigrateDown(max int) (int, error) {
+	migrate.SetTable("migrations")
+	return migrate.ExecMax(GetDbInstance(), "postgres", GetMigration(), migrate.Down, max)
 }

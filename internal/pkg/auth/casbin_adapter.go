@@ -24,8 +24,8 @@ import (
 	"github.com/casbin/casbin/v2/persist"
 	"github.com/uptrace/bun"
 	"github.com/volatiletech/null/v8"
-	"regeet.io/api/internal/pkg/db"
-	"regeet.io/api/internal/pkg/db/orm"
+	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/internal/pkg/orm/entity"
 )
 
 // Adapter
@@ -43,12 +43,12 @@ type adapter struct {
 // newAdapter
 func newAdapter() (*adapter, error) {
 	return &adapter{
-		db: db.GetBunInstance(),
+		db: orm.GetBunInstance(),
 	}, nil
 }
 
 // loadPolicyLine
-func (a *adapter) loadPolicyLine(m model.Model, line *orm.CasbinRule) {
+func (a *adapter) loadPolicyLine(m model.Model, line *entity.CasbinRule) {
 	arr := []string{line.Ptype, line.V0, line.V1, line.V2, line.V3.String, line.V4.String, line.V5.String}
 
 	var texted string
@@ -70,8 +70,8 @@ func (a *adapter) loadPolicyLine(m model.Model, line *orm.CasbinRule) {
 }
 
 // savePolicyLine
-func (*adapter) savePolicyLine(ptype string, rule []string) *orm.CasbinRule {
-	line := &orm.CasbinRule{
+func (*adapter) savePolicyLine(ptype string, rule []string) *entity.CasbinRule {
+	line := &entity.CasbinRule{
 		Ptype: ptype,
 	}
 
@@ -144,7 +144,7 @@ func (a *adapter) LoadFilteredPolicy(m model.Model, filter interface{}) error {
 
 // LoadPolicy
 func (a *adapter) LoadPolicy(m model.Model) error {
-	var lines []*orm.CasbinRule
+	var lines []*entity.CasbinRule
 	if err := a.db.NewSelect().Model(&lines).Scan(context.Background()); err != nil {
 		return err
 	}

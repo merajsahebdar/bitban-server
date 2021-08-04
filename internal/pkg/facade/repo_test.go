@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package facade_test
+package facade
 
 import (
 	"context"
 	"testing"
-
-	"regeet.io/api/internal/pkg/facade"
 )
 
 func TestRepo(t *testing.T) {
@@ -29,13 +27,13 @@ func TestRepo(t *testing.T) {
 		testRepo := "justice"
 
 		t.Run("create", func(t *testing.T) {
-			if _, err := facade.CreateRepoByName(testCtx, testRepo); err != nil {
+			if _, err := CreateRepoByName(testCtx, testRepo); err != nil {
 				t.Errorf("failed to create the repository: %s", err.Error())
 			}
 		})
 
 		t.Run("read", func(t *testing.T) {
-			if _, err := facade.GetRepoByName(testCtx, testRepo); err != nil {
+			if _, err := GetRepoByName(testCtx, testRepo); err != nil {
 				t.Errorf("got an unexpected error: %s", err.Error())
 			}
 		})

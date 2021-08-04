@@ -27,8 +27,8 @@ import (
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"github.com/uptrace/bun"
 	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/db"
-	"regeet.io/api/internal/pkg/db/orm"
+	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/internal/pkg/orm/entity"
 )
 
 // phoneRegexp
@@ -93,9 +93,9 @@ func GetValidateInstance() *validator.Validate {
 					switch property {
 					case "address":
 						address := fl.Field().String()
-						if count, err := db.GetBunInstance().
+						if count, err := orm.GetBunInstance().
 							NewSelect().
-							Model(new(orm.UserEmail)).
+							Model(new(entity.UserEmail)).
 							Where("? = ?", bun.Ident("user_email.address"), address).
 							Count(context.Background()); err != nil {
 							panic(err)

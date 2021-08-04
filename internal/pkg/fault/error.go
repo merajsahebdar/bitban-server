@@ -21,6 +21,7 @@ import (
 	"errors"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/lib/pq"
 	"regeet.io/api/internal/cfg"
 )
 
@@ -114,4 +115,18 @@ func IsUserInputError(err error) bool {
 // IsNonUserInputError
 func IsNonUserInputError(err error) bool {
 	return err != nil && !IsUserInputError(err)
+}
+
+// IsPqUniqueViolationError
+func IsPqUniqueViolationError(err error) bool {
+	if pqErr, ok := err.(*pq.Error); ok {
+		return pqErr.Code.Name() == "unique_violation"
+	}
+
+	return false
+}
+
+// IsNonPqUniqueViolationError
+func IsNonPqUniqueViolationError(err error) bool {
+	return err != nil && !IsPqUniqueViolationError(err)
 }

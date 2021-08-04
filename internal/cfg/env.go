@@ -20,7 +20,8 @@ package cfg
 type EnvType int
 
 const (
-	Dev EnvType = iota + 10
+	Test EnvType = iota + 10
+	Dev
 	Prod
 )
 

@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package orm
+package facade
 
 import (
-	"github.com/uptrace/bun"
-	"github.com/volatiletech/null/v8"
+	"testing"
+
+	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/test"
 )
 
-// CasbinRule
-type CasbinRule struct {
-	bun.BaseModel `bun:"casbin_rules,select:casbin_rules,alias:casbin_rule"`
-	ID            int64       `bun:"id"`
-	Ptype         string      `bun:"ptype"`
-	V0            string      `bun:"v0"`
-	V1            string      `bun:"v1"`
-	V2            string      `bun:"v2"`
-	V3            null.String `bun:"v3"`
-	V4            null.String `bun:"v4"`
-	V5            null.String `bun:"v5"`
+func TestMain(m *testing.M) {
+	test.CreatePostgresContainer()
+	orm.MigrateUp()
+	m.Run()
+	orm.MigrateDown(0)
 }
