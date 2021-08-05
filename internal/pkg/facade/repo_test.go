@@ -19,23 +19,36 @@ package facade
 import (
 	"context"
 	"testing"
+
+	"syreclabs.com/go/faker"
 )
 
 func TestRepo(t *testing.T) {
 	t.Run("repository", func(t *testing.T) {
-		testCtx := context.Background()
-		testRepo := "justice"
+		ctx := context.Background()
 
-		t.Run("create", func(t *testing.T) {
-			if _, err := CreateRepoByName(testCtx, testRepo); err != nil {
-				t.Errorf("failed to create the repository: %s", err.Error())
+		if account, err := GetAccountByUserId(ctx, 1); err != nil {
+			t.Errorf("failed to find domain fixture, got error: %s", err.Error())
+		} else {
+			newInput := struct {
+				domain string
+				repo   string
+			}{
+				domain: account.GetUser().Domain.Address,
+				repo:   faker.Internet().Slug(),
 			}
-		})
 
-		t.Run("read", func(t *testing.T) {
-			if _, err := GetRepoByName(testCtx, testRepo); err != nil {
-				t.Errorf("got an unexpected error: %s", err.Error())
-			}
-		})
+			t.Run("create", func(t *testing.T) {
+				if _, err := CreateRepoByAddress(ctx, newInput.domain, newInput.repo); err != nil {
+					t.Errorf("failed to create the repository: %s", err.Error())
+				}
+			})
+
+			t.Run("read", func(t *testing.T) {
+				if _, err := GetRepoByAddress(ctx, newInput.domain, newInput.repo); err != nil {
+					t.Errorf("got an unexpected error: %s", err.Error())
+				}
+			})
+		}
 	})
 }

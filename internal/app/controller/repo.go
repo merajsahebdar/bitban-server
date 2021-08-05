@@ -46,9 +46,10 @@ func (c *Repo) InfoRefs(ctx context.Context) error {
 	req := ec.Request()
 	res := ec.Response()
 
-	if repo, err = facade.GetRepoByName(
+	if repo, err = facade.GetRepoByAddress(
 		req.Context(),
-		ec.Param("name"),
+		ec.Param("domain"),
+		ec.Param("repo"),
 	); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
@@ -65,7 +66,8 @@ func (c *Repo) InfoRefs(ctx context.Context) error {
 // ServePack
 func (c *Repo) ServePack(ctx context.Context) error {
 	var service string
-	var name string
+	var domainAddress string
+	var repoAddress string
 	var isSsh bool
 
 	var r io.Reader
@@ -78,7 +80,11 @@ func (c *Repo) ServePack(ctx context.Context) error {
 			cmd := ssh.GetContextCmd(ctx)
 
 			service = cmd.Name
-			name = cmd.Args
+
+			paths := strings.SplitN(cmd.Args, "/", 2)
+			domainAddress = paths[0]
+			repoAddress = paths[1]
+
 			isSsh = true
 
 			r = ioutil.NopCloser(ch)
@@ -86,7 +92,8 @@ func (c *Repo) ServePack(ctx context.Context) error {
 		}
 	} else {
 		service = ec.Param("service")
-		name = ec.Param("name")
+		domainAddress = ec.Param("domain")
+		repoAddress = ec.Param("repo")
 		isSsh = false
 
 		req := ec.Request()
@@ -103,9 +110,10 @@ func (c *Repo) ServePack(ctx context.Context) error {
 	var err error
 	var repo *facade.Repo
 
-	if repo, err = facade.GetRepoByName(
+	if repo, err = facade.GetRepoByAddress(
 		ctx,
-		strings.TrimSuffix(name, ".git"),
+		domainAddress,
+		strings.TrimSuffix(repoAddress, ".git"),
 	); err != nil {
 		// TODO:
 		cfg.Log.Error("failed to initiate a repo facade", zap.Error(err))

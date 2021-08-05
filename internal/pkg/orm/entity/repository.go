@@ -23,16 +23,14 @@ import (
 	"github.com/volatiletech/null/v8"
 )
 
-// Domain
-type Domain struct {
-	bun.BaseModel `bun:"domains,select:domains,alias:domain"`
-	ID            int64         `bun:"id"`
-	CreatedAt     time.Time     `bun:"created_at"`
-	UpdatedAt     time.Time     `bun:"updated_at"`
-	RemovedAt     null.Time     `bun:"removed_at"`
-	Type          string        `bun:"type"`
-	Name          string        `bun:"name"`
-	Address       string        `bun:"address"`
-	Meta          interface{}   `bun:"meta"`
-	Repositories  []*Repository `bun:"rel:has-many,join:id=domain_id"`
+// Repository
+type Repository struct {
+	bun.BaseModel `bun:"repositories,select:repositories,alias:repository"`
+	ID            int64      `bun:"id"`
+	CreatedAt     time.Time  `bun:"created_at"`
+	UpdatedAt     time.Time  `bun:"updated_at"`
+	RemovedAt     null.Time  `bun:"removed_at"`
+	Address       string     `bun:"address"`
+	DomainID      null.Int64 `bun:"domain_id"`
+	Domain        *Domain    `bun:"rel:belongs-to,join:domain_id=id"`
 }

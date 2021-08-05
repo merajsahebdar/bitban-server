@@ -37,9 +37,13 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/server"
 	"github.com/go-git/go-git/v5/storage"
 	"github.com/go-git/go-git/v5/storage/filesystem"
+	"github.com/uptrace/bun"
+	"github.com/volatiletech/null/v8"
 	gossh "golang.org/x/crypto/ssh"
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/exec"
+	"regeet.io/api/internal/pkg/orm"
+	"regeet.io/api/internal/pkg/orm/entity"
 )
 
 // Services
@@ -72,9 +76,10 @@ type repoGoBackend struct {
 // Repo
 type Repo struct {
 	*repoGoBackend
-	ctx  context.Context
-	name string
-	path string
+	ctx           context.Context
+	domainAddress string
+	repoAddress   string
+	path          string
 }
 
 type serverLoader struct {
@@ -280,9 +285,42 @@ func (f *Repo) ServePack(serveConfig *ServerPackConfig) error {
 	}
 }
 
-// CreateRepoByName
-func CreateRepoByName(ctx context.Context, name string) (*Repo, error) {
-	path, err := getPath(name)
+// CreateRepoByAddress
+func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress string) (repo *Repo, err error) {
+	domain := new(entity.Domain)
+	if err := orm.
+		GetBunInstance().
+		NewSelect().
+		Model(domain).
+		Where("? = ?", bun.Ident("domain.address"), domainAddress).
+		Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	var tx bun.Tx
+	if tx, err = orm.GetBunInstance().BeginTx(ctx, nil); err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		if err != nil && repo == nil {
+			tx.Rollback()
+		}
+	}()
+
+	repository := &entity.Repository{
+		Address:  repoAddress,
+		DomainID: null.Int64From(domain.ID),
+	}
+	if _, err := tx.
+		NewInsert().
+		Model(repository).
+		Column("address", "domain_id").
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	path, err := getPath(domainAddress, repoAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -317,17 +355,37 @@ func CreateRepoByName(ctx context.Context, name string) (*Repo, error) {
 		}
 	}
 
-	return &Repo{
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	repo = &Repo{
 		repoGoBackend: backend,
 		ctx:           ctx,
-		name:          name,
+		domainAddress: domainAddress,
+		repoAddress:   repoAddress,
 		path:          path,
-	}, nil
+	}
+
+	return repo, nil
 }
 
-// GetRepoByName
-func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
-	path, err := getPath(name)
+// GetRepoByAddress
+func GetRepoByAddress(ctx context.Context, domainAddress string, repoAddress string) (*Repo, error) {
+	repository := new(entity.Repository)
+	if err := orm.
+		GetBunInstance().
+		NewSelect().
+		Model(repository).
+		Relation("Domain", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.Where("? = ?", bun.Ident("domain.address"), domainAddress)
+		}).
+		Where("? = ?", bun.Ident("repository.address"), repoAddress).
+		Scan(ctx); err != nil {
+		return nil, err
+	}
+
+	path, err := getPath(domainAddress, repoAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -354,19 +412,20 @@ func GetRepoByName(ctx context.Context, name string) (*Repo, error) {
 	return &Repo{
 		repoGoBackend: backend,
 		ctx:           ctx,
-		name:          name,
+		domainAddress: domainAddress,
+		repoAddress:   repoAddress,
 		path:          path,
 	}, nil
 }
 
 // getPath
-func getPath(name string) (path string, err error) {
+func getPath(domainAddress string, repoAddress string) (path string, err error) {
 	if cfg.Cog.Git.Storage == cfg.GitStorageFs {
-		if path, err = cfg.GetVarPath("/repos", name); err != nil {
+		if path, err = cfg.GetVarPath("/repos", domainAddress, repoAddress); err != nil {
 			return "", git.ErrRepositoryNotExists
 		}
 	} else {
-		path = "/repos/" + name
+		path = fmt.Sprintf("/repos/%s/%s", domainAddress, repoAddress)
 	}
 
 	return path, nil

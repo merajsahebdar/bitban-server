@@ -56,7 +56,7 @@ func registerEchoLifecycle(lc fx.Lifecycle, schemaConfig schema.Config, repoCont
 	//
 	// Register Git
 
-	eg := ee.Group("/:name")
+	eg := ee.Group("/:domain/:repo")
 	eg.GET("/info/refs", echoHandlerFrom(repoController.InfoRefs))
 	eg.POST("/:service", echoHandlerFrom(repoController.ServePack))
 
