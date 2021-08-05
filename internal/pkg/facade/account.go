@@ -38,8 +38,8 @@ import (
 // TODO: move token signing into auth package
 //
 
-// defaultDomain
-const defaultDomain = "_"
+// appDomain
+const appDomain = "_"
 
 type (
 	// Account
@@ -57,14 +57,16 @@ func (f *Account) GetUser() *entity.User {
 // CheckPermission
 //
 // Errors:
-//   - common.ErrForbidden if the authorized user does not have access to the resource
+//   - fault.ErrForbidden if the authorized user does not have access to the resource
 func (f *Account) CheckPermission(obj string, act string) error {
-	if ok, err := auth.GetEnforcerInstance().Enforce(
-		fmt.Sprintf("/users/%d", f.user.ID),
-		defaultDomain,
-		obj,
-		act,
-	); err != nil || !ok {
+	if ok, err := auth.
+		GetEnforcerInstance().
+		Enforce(
+			fmt.Sprintf("/users/%d", f.user.DomainID),
+			appDomain,
+			obj,
+			act,
+		); err != nil || !ok {
 		return fault.ErrForbidden
 	}
 
@@ -73,32 +75,30 @@ func (f *Account) CheckPermission(obj string, act string) error {
 
 // CreateAccessToken
 func (f *Account) CreateAccessToken() (accessToken string, err error) {
-	comp := jwt.GetJwtInstance()
-
 	currTime := time.Now().In(time.UTC)
 	claims := &gojwt.StandardClaims{
-		Subject:  dto.ToNodeIdentifier(dto.UserNodeType, f.user.ID),
+		Subject:  dto.ToNodeIdentifier(dto.UserNodeType, f.user.DomainID),
 		IssuedAt: currTime.Unix(),
 		ExpiresAt: currTime.Add(
 			time.Duration(cfg.Cog.Security.AccessTokenExpiresAt) * time.Minute,
 		).Unix(),
 	}
 
-	accessToken, err = comp.SignToken(claims)
+	accessToken, err = jwt.
+		GetJwtInstance().
+		SignToken(claims)
 	return accessToken, err
 }
 
 // CreateRefreshToken
 func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
-	comp := jwt.GetJwtInstance()
-
-	userToken := &entity.UserToken{
+	token := &entity.Token{
 		Meta:   struct{}{},
-		UserID: null.Int64From(f.user.ID),
+		UserID: null.Int64From(f.user.DomainID),
 	}
 	if _, err = orm.GetBunInstance().
 		NewInsert().
-		Model(userToken).
+		Model(token).
 		Column("meta", "user_id").
 		Exec(f.ctx); err != nil {
 		return "", err
@@ -109,17 +109,17 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 		time.Duration(cfg.Cog.Security.RefreshTokenExpiresAt) * time.Minute,
 	)
 	claims := &gojwt.StandardClaims{
-		Id:        dto.ToNodeIdentifier(dto.UserTokenNodeType, userToken.ID),
-		Subject:   dto.ToNodeIdentifier(dto.UserNodeType, f.user.ID),
+		Id:        dto.ToNodeIdentifier(dto.TokenNodeType, token.ID),
+		Subject:   dto.ToNodeIdentifier(dto.UserNodeType, f.user.DomainID),
 		IssuedAt:  currTime.Unix(),
 		ExpiresAt: expiresAt.Unix(),
 	}
 
-	if refreshToken, err = comp.SignToken(claims); err != nil {
+	if refreshToken, err = jwt.
+		GetJwtInstance().
+		SignToken(claims); err != nil {
 		return "", err
 	}
-
-	auth.SetRefreshTokenCookie(f.ctx, refreshToken)
 
 	return refreshToken, nil
 }
@@ -128,22 +128,22 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 //
 // If was not able to find the corresponding account, returns `fault.ErrUserInput`.
 func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account, error) {
-	userPrimaryEmail := new(entity.UserEmail)
+	primaryEmail := new(entity.Email)
 	if err := orm.GetBunInstance().
 		NewSelect().
-		Model(userPrimaryEmail).
+		Model(primaryEmail).
 		Relation("User", func(sq *bun.SelectQuery) *bun.SelectQuery {
 			return sq.Where("? = ?", bun.Ident("user.is_active"), true).
 				Where("? = ?", bun.Ident("user.is_banned"), false).
 				Where("? IS NULL", bun.Ident("user.removed_at"), nil)
 		}).
-		Relation("User.Profile", func(sq *bun.SelectQuery) *bun.SelectQuery {
-			return sq.Where("? IS NULL", bun.Ident("user__profile.removed_at"))
+		Relation("User.Domain", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.Where("? IS NULL", bun.Ident("user__domain.removed_at"))
 		}).
-		Where("? = ?", bun.Ident("user_email.address"), input.Identifier).
-		Where("? = ?", bun.Ident("user_email.is_primary"), true).
-		Where("? = ?", bun.Ident("user_email.is_verified"), true).
-		Where("? IS NULL", bun.Ident("user_email.removed_at")).
+		Where("? = ?", bun.Ident("email.address"), input.Identifier).
+		Where("? = ?", bun.Ident("email.is_primary"), true).
+		Where("? = ?", bun.Ident("email.is_verified"), true).
+		Where("? IS NULL", bun.Ident("email.removed_at")).
 		Limit(1).
 		Scan(ctx); fault.IsNonResourceNotFoundError(err) {
 		return nil, err
@@ -151,7 +151,7 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 		return nil, fault.ErrUserInput
 	}
 
-	user := userPrimaryEmail.User
+	user := primaryEmail.User
 	if user == nil || user.Password.IsZero() || !util.ComparePassword(user.Password.String, input.Password) {
 		return nil, fault.ErrUserInput
 	}
@@ -162,22 +162,14 @@ func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account,
 	}, nil
 }
 
-// GetAccountByUser
-func GetAccountByUser(ctx context.Context, user *entity.User) (account *Account, err error) {
-	account = &Account{
-		ctx:  ctx,
-		user: user,
-	}
-	return account, err
-}
-
 // GetAccountByUserId
 func GetAccountByUserId(ctx context.Context, id int64) (*Account, error) {
 	user := new(entity.User)
 	if err := orm.GetBunInstance().
 		NewSelect().
 		Model(user).
-		Where("? = ?", bun.Ident("user.id"), id).
+		Relation("Domain").
+		Where("? = ?", bun.Ident("user.domain_id"), id).
 		Limit(1).
 		Scan(ctx); err != nil {
 		return nil, err
@@ -203,6 +195,23 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	}()
 
 	//
+	// Create Domain
+
+	domain := &entity.Domain{
+		Type:    "user",
+		Name:    input.Domain.Name,
+		Address: input.Domain.Address,
+		Meta:    struct{}{},
+	}
+	if _, err := tx.NewInsert().
+		Model(domain).
+		Column("type", "name", "address", "meta").
+		Returning("id", "created_at", "updated_at").
+		Exec(ctx); err != nil {
+		return nil, err
+	}
+
+	//
 	// Create User
 
 	var hashedPassword string
@@ -211,14 +220,16 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	}
 
 	user := &entity.User{
-		Password: null.StringFrom(hashedPassword),
-		IsActive: true,
-		IsBanned: false,
+		DomainID:   domain.ID,
+		DomainType: domain.Type,
+		Password:   null.StringFrom(hashedPassword),
+		IsActive:   true,
+		IsBanned:   false,
 	}
 	if _, err = tx.NewInsert().
 		Model(user).
-		Column("password", "is_active", "is_banned").
-		Returning("id", "created_at", "updated_at").
+		Column("domain_id", "domain_type", "password", "is_active", "is_banned").
+		Returning("created_at", "updated_at").
 		Exec(ctx); err != nil {
 		return nil, err
 	}
@@ -226,36 +237,20 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	//
 	// Create User's Email
 
-	userEmail := &entity.UserEmail{
+	email := &entity.Email{
 		Address:    input.PrimaryEmail.Address,
 		IsVerified: true,
 		IsPrimary:  true,
-		UserID:     null.Int64From(user.ID),
+		UserID:     null.Int64From(user.DomainID),
 	}
 	if _, err = tx.NewInsert().
-		Model(userEmail).
+		Model(email).
 		Column("address", "is_verified", "is_primary", "user_id").
 		Exec(ctx); err != nil {
 		return nil, err
 	}
 
-	//
-	// Create User's Profile
-
-	userProfile := &entity.UserProfile{
-		Name:   input.Profile.Name,
-		Meta:   struct{}{},
-		UserID: null.Int64From(user.ID),
-	}
-	if _, err = tx.NewInsert().
-		Model(userProfile).
-		Column("name", "meta", "user_id").
-		Exec(ctx); err != nil {
-		return nil, err
-	}
-
-	user.Emails = append(user.Emails, userEmail)
-	user.Profile = userProfile
+	user.Emails = append(user.Emails, email)
 
 	//
 	// Last Step!
@@ -265,12 +260,12 @@ func CreateAccount(ctx context.Context, input dto.SignUpInput) (account *Account
 	}
 
 	// Grant Permissions
-	sub := fmt.Sprintf("/users/%d", user.ID)
+	sub := fmt.Sprintf("/users/%d", user.DomainID)
 	if _, err = auth.GetEnforcerInstance().AddNamedPolicies(
 		"p",
 		[][]string{
-			{sub, defaultDomain, fmt.Sprintf("/users/%d", user.ID), ".*"},
-			{sub, defaultDomain, fmt.Sprintf("/users/%d/*", user.ID), ".*"},
+			{sub, appDomain, fmt.Sprintf("/users/%d", user.DomainID), ".*"},
+			{sub, appDomain, fmt.Sprintf("/users/%d/*", user.DomainID), ".*"},
 		},
 	); err != nil {
 		return nil, err

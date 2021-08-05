@@ -20,16 +20,6 @@ type User implements Node {
   removedAt: DateTime
   isActive: Boolean!
   isBanned: Boolean!
-  profile: UserProfile!
-}
-
-# ============
-# User Profile
-# ------------
-
-type UserProfile {
-  id: ID!
-  name: String!
 }
 
 # ====
@@ -48,7 +38,7 @@ type Auth {
 input SignUpInput {
   password: String!
   passwordConfirm: String!
-  profile: SignUpProfileInput!
+  domain: SignUpDomainInput!
   primaryEmail: SignUpPrimaryEmailInput!
 }
 
@@ -56,8 +46,9 @@ input SignUpPrimaryEmailInput {
   address: String!
 }
 
-input SignUpProfileInput {
+input SignUpDomainInput {
   name: String!
+  address: String!
 }
 
 # =============

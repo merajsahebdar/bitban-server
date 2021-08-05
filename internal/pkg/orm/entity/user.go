@@ -27,19 +27,20 @@ import (
 // User
 type User struct {
 	bun.BaseModel `bun:"users,select:users,alias:user"`
-	ID            int64        `bun:"id"`
-	CreatedAt     time.Time    `bun:"created_at"`
-	UpdatedAt     time.Time    `bun:"updated_at"`
-	RemovedAt     null.Time    `bun:"removed_at"`
-	Password      null.String  `bun:"password"`
-	IsActive      bool         `bun:"is_active"`
-	IsBanned      bool         `bun:"is_banned"`
-	Emails        []*UserEmail `bun:"rel:has-many"`
-	Tokens        []*UserToken `bun:"rel:has-many"`
-	Profile       *UserProfile `bun:"rel:has-one"`
+	DomainID      int64       `bun:"domain_id,pk"`
+	DomainType    string      `bun:"domain_type"`
+	CreatedAt     time.Time   `bun:"created_at"`
+	UpdatedAt     time.Time   `bun:"updated_at"`
+	RemovedAt     null.Time   `bun:"removed_at"`
+	Password      null.String `bun:"password"`
+	IsActive      bool        `bun:"is_active"`
+	IsBanned      bool        `bun:"is_banned"`
+	Domain        *Domain     `bun:"rel:belongs-to,join:domain_id=id"`
+	Emails        []*Email    `bun:"rel:has-many,join:domain_id=user_id"`
+	Tokens        []*Token    `bun:"rel:has-many,join:domain_id=user_id"`
 }
 
 // String
 func (e *User) String() string {
-	return fmt.Sprintf("User<%d, %t, %t>", e.ID, e.IsActive, e.IsBanned)
+	return fmt.Sprintf("User<%d, %t, %t>", e.DomainID, e.IsActive, e.IsBanned)
 }

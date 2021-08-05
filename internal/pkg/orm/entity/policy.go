@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package dto
+package entity
 
-import "regeet.io/api/internal/pkg/orm/entity"
+import (
+	"github.com/uptrace/bun"
+	"github.com/volatiletech/null/v8"
+)
 
-// UserProfile
-type UserProfile struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-// UserProfileFrom
-func UserProfileFrom(profile *entity.UserProfile) *UserProfile {
-	if profile != nil {
-		return &UserProfile{
-			ID:   ToNodeIdentifier(UserProfileNodeType, profile.ID),
-			Name: profile.Name,
-		}
-	}
-
-	return nil
+// Policy
+type Policy struct {
+	bun.BaseModel `bun:"policies,select:policies,alias:policy"`
+	ID            int64       `bun:"id"`
+	Ptype         string      `bun:"ptype"`
+	V0            string      `bun:"v0"`
+	V1            string      `bun:"v1"`
+	V2            string      `bun:"v2"`
+	V3            null.String `bun:"v3"`
+	V4            null.String `bun:"v4"`
+	V5            null.String `bun:"v5"`
 }

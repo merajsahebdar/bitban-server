@@ -89,14 +89,30 @@ func GetValidateInstance() *validator.Validate {
 				property := param[1]
 
 				switch datasource {
-				case "user_emails":
+				case "domains":
 					switch property {
 					case "address":
 						address := fl.Field().String()
+						domain := new(entity.Domain)
 						if count, err := orm.GetBunInstance().
 							NewSelect().
-							Model(new(entity.UserEmail)).
-							Where("? = ?", bun.Ident("user_email.address"), address).
+							Model(domain).
+							Where("? = ?", bun.Ident("domain.address"), address).
+							Count(context.Background()); err != nil {
+							panic(err)
+						} else {
+							return count == 0
+						}
+					}
+				case "emails":
+					switch property {
+					case "address":
+						address := fl.Field().String()
+						email := new(entity.Email)
+						if count, err := orm.GetBunInstance().
+							NewSelect().
+							Model(email).
+							Where("? = ?", bun.Ident("email.address"), address).
 							Count(context.Background()); err != nil {
 							panic(err)
 						} else {

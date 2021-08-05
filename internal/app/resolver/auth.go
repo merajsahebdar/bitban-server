@@ -19,6 +19,7 @@ package resolver
 import (
 	"context"
 
+	"regeet.io/api/internal/pkg/auth"
 	"regeet.io/api/internal/pkg/dto"
 	"regeet.io/api/internal/pkg/facade"
 	"regeet.io/api/internal/pkg/fault"
@@ -38,13 +39,15 @@ func createAccessTokenByAccoount(account *facade.Account) string {
 }
 
 // createAuthTokensByAccount
-func createAuthTokensByAccount(account *facade.Account) (string, string) {
+func createAuthTokensByAccount(ctx context.Context, account *facade.Account) (string, string) {
 	var err error
 
 	var refreshToken string
 	if refreshToken, err = account.CreateRefreshToken(); err != nil {
 		panic(err)
 	}
+
+	auth.SetRefreshTokenCookie(ctx, refreshToken)
 
 	return refreshToken, createAccessTokenByAccoount(account)
 }
@@ -65,7 +68,7 @@ func (r *mutationResolver) SignIn(ctx context.Context, input dto.SignInInput) (*
 	} else if fault.IsUserInputError(err) {
 		return nil, UserInputErrorFrom(err)
 	} else {
-		_, accessToken := createAuthTokensByAccount(account)
+		_, accessToken := createAuthTokensByAccount(ctx, account)
 
 		return &dto.Auth{
 			AccessToken: accessToken,
@@ -85,7 +88,7 @@ func (r *mutationResolver) SignUp(ctx context.Context, input dto.SignUpInput) (*
 	if account, err := facade.CreateAccount(ctx, input); err != nil {
 		panic(err)
 	} else {
-		_, accessToken := createAuthTokensByAccount(account)
+		_, accessToken := createAuthTokensByAccount(ctx, account)
 
 		return &dto.Auth{
 			AccessToken: accessToken,

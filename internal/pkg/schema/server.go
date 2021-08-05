@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -41,7 +40,6 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
-	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -68,14 +66,8 @@ type ComplexityRoot struct {
 		ID        func(childComplexity int) int
 		IsActive  func(childComplexity int) int
 		IsBanned  func(childComplexity int) int
-		Profile   func(childComplexity int) int
 		RemovedAt func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
-	}
-
-	UserProfile struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
 	}
 }
 
@@ -86,9 +78,6 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (dto.Node, error)
-}
-type UserResolver interface {
-	Profile(ctx context.Context, obj *dto.User) (*dto.UserProfile, error)
 }
 
 type executableSchema struct {
@@ -191,13 +180,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.IsBanned(childComplexity), true
 
-	case "User.profile":
-		if e.complexity.User.Profile == nil {
-			break
-		}
-
-		return e.complexity.User.Profile(childComplexity), true
-
 	case "User.removedAt":
 		if e.complexity.User.RemovedAt == nil {
 			break
@@ -211,20 +193,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.UpdatedAt(childComplexity), true
-
-	case "UserProfile.id":
-		if e.complexity.UserProfile.ID == nil {
-			break
-		}
-
-		return e.complexity.UserProfile.ID(childComplexity), true
-
-	case "UserProfile.name":
-		if e.complexity.UserProfile.Name == nil {
-			break
-		}
-
-		return e.complexity.UserProfile.Name(childComplexity), true
 
 	}
 	return 0, false
@@ -312,16 +280,6 @@ type User implements Node {
   removedAt: DateTime
   isActive: Boolean!
   isBanned: Boolean!
-  profile: UserProfile!
-}
-
-# ============
-# User Profile
-# ------------
-
-type UserProfile {
-  id: ID!
-  name: String!
 }
 
 # ====
@@ -340,7 +298,7 @@ type Auth {
 input SignUpInput {
   password: String!
   passwordConfirm: String!
-  profile: SignUpProfileInput!
+  domain: SignUpDomainInput!
   primaryEmail: SignUpPrimaryEmailInput!
 }
 
@@ -348,8 +306,9 @@ input SignUpPrimaryEmailInput {
   address: String!
 }
 
-input SignUpProfileInput {
+input SignUpDomainInput {
   name: String!
+  address: String!
 }
 
 # =============
@@ -1002,111 +961,6 @@ func (ec *executionContext) _User_isBanned(ctx context.Context, field graphql.Co
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _User_profile(ctx context.Context, field graphql.CollectedField, obj *dto.User) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Profile(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*dto.UserProfile)
-	fc.Result = res
-	return ec.marshalNUserProfile2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐUserProfile(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserProfile_id(ctx context.Context, field graphql.CollectedField, obj *dto.UserProfile) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserProfile",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserProfile_name(ctx context.Context, field graphql.CollectedField, obj *dto.UserProfile) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "UserProfile",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2224,6 +2078,34 @@ func (ec *executionContext) unmarshalInputSignInInput(ctx context.Context, obj i
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSignUpDomainInput(ctx context.Context, obj interface{}) (dto.SignUpDomainInput, error) {
+	var it dto.SignUpDomainInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "address":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+			it.Address, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSignUpInput(ctx context.Context, obj interface{}) (dto.SignUpInput, error) {
 	var it dto.SignUpInput
 	var asMap = obj.(map[string]interface{})
@@ -2246,11 +2128,11 @@ func (ec *executionContext) unmarshalInputSignUpInput(ctx context.Context, obj i
 			if err != nil {
 				return it, err
 			}
-		case "profile":
+		case "domain":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profile"))
-			it.Profile, err = ec.unmarshalNSignUpProfileInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpProfileInput(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
+			it.Domain, err = ec.unmarshalNSignUpDomainInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpDomainInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2279,26 +2161,6 @@ func (ec *executionContext) unmarshalInputSignUpPrimaryEmailInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
 			it.Address, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
-func (ec *executionContext) unmarshalInputSignUpProfileInput(ctx context.Context, obj interface{}) (dto.SignUpProfileInput, error) {
-	var it dto.SignUpProfileInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "name":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2460,73 +2322,27 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._User_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "createdAt":
 			out.Values[i] = ec._User_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "updatedAt":
 			out.Values[i] = ec._User_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "removedAt":
 			out.Values[i] = ec._User_removedAt(ctx, field, obj)
 		case "isActive":
 			out.Values[i] = ec._User_isActive(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "isBanned":
 			out.Values[i] = ec._User_isBanned(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "profile":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_profile(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var userProfileImplementors = []string{"UserProfile"}
-
-func (ec *executionContext) _UserProfile(ctx context.Context, sel ast.SelectionSet, obj *dto.UserProfile) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, userProfileImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("UserProfile")
-		case "id":
-			out.Values[i] = ec._UserProfile_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-			out.Values[i] = ec._UserProfile_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2850,6 +2666,11 @@ func (ec *executionContext) unmarshalNSignInInput2regeetᚗioᚋapiᚋinternal�
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNSignUpDomainInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpDomainInput(ctx context.Context, v interface{}) (dto.SignUpDomainInput, error) {
+	res, err := ec.unmarshalInputSignUpDomainInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNSignUpInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpInput(ctx context.Context, v interface{}) (dto.SignUpInput, error) {
 	res, err := ec.unmarshalInputSignUpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2857,11 +2678,6 @@ func (ec *executionContext) unmarshalNSignUpInput2regeetᚗioᚋapiᚋinternal�
 
 func (ec *executionContext) unmarshalNSignUpPrimaryEmailInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpPrimaryEmailInput(ctx context.Context, v interface{}) (dto.SignUpPrimaryEmailInput, error) {
 	res, err := ec.unmarshalInputSignUpPrimaryEmailInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNSignUpProfileInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpProfileInput(ctx context.Context, v interface{}) (dto.SignUpProfileInput, error) {
-	res, err := ec.unmarshalInputSignUpProfileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -2888,20 +2704,6 @@ func (ec *executionContext) marshalNUser2ᚖregeetᚗioᚋapiᚋinternalᚋpkg�
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNUserProfile2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v dto.UserProfile) graphql.Marshaler {
-	return ec._UserProfile(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNUserProfile2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐUserProfile(ctx context.Context, sel ast.SelectionSet, v *dto.UserProfile) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._UserProfile(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

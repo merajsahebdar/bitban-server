@@ -2,7 +2,7 @@
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
 # Migrations Directory
-MIGRATIONS_DIR:=$(ROOT_DIR)/migrations
+MIGRATIONS_DIR:=$(ROOT_DIR)/internal/pkg/orm/migration
 
 # Phony!
 .PHONY: build

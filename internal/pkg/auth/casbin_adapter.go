@@ -48,21 +48,21 @@ func newAdapter() (*adapter, error) {
 }
 
 // loadPolicyLine
-func (a *adapter) loadPolicyLine(m model.Model, line *entity.CasbinRule) {
-	arr := []string{line.Ptype, line.V0, line.V1, line.V2, line.V3.String, line.V4.String, line.V5.String}
+func (a *adapter) loadPolicyLine(m model.Model, policy *entity.Policy) {
+	arr := []string{policy.Ptype, policy.V0, policy.V1, policy.V2, policy.V3.String, policy.V4.String, policy.V5.String}
 
 	var texted string
-	if !line.V5.IsZero() {
+	if !policy.V5.IsZero() {
 		texted = strings.Join(arr, ", ")
-	} else if !line.V4.IsZero() {
+	} else if !policy.V4.IsZero() {
 		texted = strings.Join(arr[:6], ", ")
-	} else if !line.V3.IsZero() {
+	} else if !policy.V3.IsZero() {
 		texted = strings.Join(arr[:5], ", ")
-	} else if line.V2 != "" {
+	} else if policy.V2 != "" {
 		texted = strings.Join(arr[:4], ", ")
-	} else if line.V1 != "" {
+	} else if policy.V1 != "" {
 		texted = strings.Join(arr[:3], ", ")
-	} else if line.V0 != "" {
+	} else if policy.V0 != "" {
 		texted = strings.Join(arr[:2], ", ")
 	}
 
@@ -70,31 +70,31 @@ func (a *adapter) loadPolicyLine(m model.Model, line *entity.CasbinRule) {
 }
 
 // savePolicyLine
-func (*adapter) savePolicyLine(ptype string, rule []string) *entity.CasbinRule {
-	line := &entity.CasbinRule{
+func (*adapter) savePolicyLine(ptype string, rule []string) *entity.Policy {
+	policy := &entity.Policy{
 		Ptype: ptype,
 	}
 
 	if len(rule) > 0 {
-		line.V0 = rule[0]
+		policy.V0 = rule[0]
 	}
 	if len(rule) > 1 {
-		line.V1 = rule[1]
+		policy.V1 = rule[1]
 	}
 	if len(rule) > 2 {
-		line.V2 = rule[2]
+		policy.V2 = rule[2]
 	}
 	if len(rule) > 3 {
-		line.V3 = null.StringFrom(rule[3])
+		policy.V3 = null.StringFrom(rule[3])
 	}
 	if len(rule) > 4 {
-		line.V4 = null.StringFrom(rule[4])
+		policy.V4 = null.StringFrom(rule[4])
 	}
 	if len(rule) > 5 {
-		line.V5 = null.StringFrom(rule[5])
+		policy.V5 = null.StringFrom(rule[5])
 	}
 
-	return line
+	return policy
 }
 
 // IsFiltered
@@ -144,13 +144,13 @@ func (a *adapter) LoadFilteredPolicy(m model.Model, filter interface{}) error {
 
 // LoadPolicy
 func (a *adapter) LoadPolicy(m model.Model) error {
-	var lines []*entity.CasbinRule
-	if err := a.db.NewSelect().Model(&lines).Scan(context.Background()); err != nil {
+	var policies []*entity.Policy
+	if err := a.db.NewSelect().Model(&policies).Scan(context.Background()); err != nil {
 		return err
 	}
 
-	for _, line := range lines {
-		a.loadPolicyLine(m, line)
+	for _, policy := range policies {
+		a.loadPolicyLine(m, policy)
 	}
 
 	return nil

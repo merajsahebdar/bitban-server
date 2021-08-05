@@ -24,10 +24,8 @@ import (
 )
 
 const (
-	UserNodeType        NodeType = "User"
-	UserTokenNodeType   NodeType = "UserToken"
-	UserEmailNodeType   NodeType = "UserEmail"
-	UserProfileNodeType NodeType = "UserProfile"
+	UserNodeType  NodeType = "User"
+	TokenNodeType NodeType = "Token"
 )
 
 // User
@@ -47,7 +45,7 @@ func (User) IsNode() {}
 func UserFrom(user *entity.User) *User {
 	if user != nil {
 		return &User{
-			ID:        ToNodeIdentifier(UserNodeType, user.ID),
+			ID:        ToNodeIdentifier(UserNodeType, user.DomainID),
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			RemovedAt: user.RemovedAt,

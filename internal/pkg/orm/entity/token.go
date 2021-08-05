@@ -23,16 +23,14 @@ import (
 	"github.com/volatiletech/null/v8"
 )
 
-// UserEmail
-type UserEmail struct {
-	bun.BaseModel `bun:"user_emails,select:user_emails,alias:user_email"`
-	ID            int64      `bun:"id"`
-	CreatedAt     time.Time  `bun:"created_at"`
-	UpdatedAt     time.Time  `bun:"updated_at"`
-	RemovedAt     null.Time  `bun:"removed_at"`
-	Address       string     `bun:"address"`
-	IsVerified    bool       `bun:"is_verified"`
-	IsPrimary     bool       `bun:"is_primary"`
-	UserID        null.Int64 `bun:"user_id"`
-	User          *User      `bun:"rel:belongs-to"`
+// Token
+type Token struct {
+	bun.BaseModel `bun:"tokens,select:tokens,alias:token"`
+	ID            int64       `bun:"id"`
+	CreatedAt     time.Time   `bun:"created_at"`
+	UpdatedAt     time.Time   `bun:"updated_at"`
+	RemovedAt     null.Time   `bun:"removed_at"`
+	Meta          interface{} `bun:"meta"`
+	UserID        null.Int64  `bun:"user_id"`
+	User          *User       `bun:"rel:belongs-to,join:user_id=domain_id"`
 }
