@@ -67,19 +67,20 @@ type ServerPackConfig struct {
 
 // repoBackend
 type repoGoBackend struct {
-	fs         billy.Filesystem
-	storage    storage.Storer
-	loader     server.Loader
-	repository *git.Repository
+	fs                 billy.Filesystem
+	storage            storage.Storer
+	loader             server.Loader
+	repositoryInstance *git.Repository
 }
 
 // Repo
 type Repo struct {
 	*repoGoBackend
-	ctx           context.Context
-	domainAddress string
-	repoAddress   string
-	path          string
+	ctx              context.Context
+	domainAddress    string
+	repoAddress      string
+	path             string
+	repositoryEntity *entity.Repository
 }
 
 type serverLoader struct {
@@ -285,6 +286,11 @@ func (f *Repo) ServePack(serveConfig *ServerPackConfig) error {
 	}
 }
 
+// GetID
+func (f *Repo) GetID() int64 {
+	return f.repositoryEntity.ID
+}
+
 // CreateRepoByAddress
 func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress string) (repo *Repo, err error) {
 	domain := new(entity.Domain)
@@ -308,13 +314,13 @@ func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress 
 		}
 	}()
 
-	repository := &entity.Repository{
+	repositoryEntity := &entity.Repository{
 		Address:  repoAddress,
 		DomainID: null.Int64From(domain.ID),
 	}
 	if _, err := tx.
 		NewInsert().
-		Model(repository).
+		Model(repositoryEntity).
 		Column("address", "domain_id").
 		Exec(ctx); err != nil {
 		return nil, err
@@ -332,7 +338,7 @@ func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress 
 			return nil, err
 		}
 
-		if repository, err := git.Init(storage, nil); err != nil {
+		if repositoryInstance, err := git.Init(storage, nil); err != nil {
 			return nil, err
 		} else {
 			head := plumbing.NewSymbolicReference(
@@ -347,10 +353,10 @@ func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress 
 			}
 
 			backend = &repoGoBackend{
-				fs:         fs,
-				storage:    storage,
-				loader:     &serverLoader{storage: storage},
-				repository: repository,
+				fs:                 fs,
+				storage:            storage,
+				loader:             &serverLoader{storage: storage},
+				repositoryInstance: repositoryInstance,
 			}
 		}
 	}
@@ -360,11 +366,12 @@ func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress 
 	}
 
 	repo = &Repo{
-		repoGoBackend: backend,
-		ctx:           ctx,
-		domainAddress: domainAddress,
-		repoAddress:   repoAddress,
-		path:          path,
+		repoGoBackend:    backend,
+		ctx:              ctx,
+		domainAddress:    domainAddress,
+		repoAddress:      repoAddress,
+		path:             path,
+		repositoryEntity: repositoryEntity,
 	}
 
 	return repo, nil
@@ -372,11 +379,11 @@ func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress 
 
 // GetRepoByAddress
 func GetRepoByAddress(ctx context.Context, domainAddress string, repoAddress string) (*Repo, error) {
-	repository := new(entity.Repository)
+	repositoryEntity := new(entity.Repository)
 	if err := orm.
 		GetBunInstance().
 		NewSelect().
-		Model(repository).
+		Model(repositoryEntity).
 		Relation("Domain", func(sq *bun.SelectQuery) *bun.SelectQuery {
 			return sq.Where("? = ?", bun.Ident("domain.address"), domainAddress)
 		}).
@@ -397,24 +404,25 @@ func GetRepoByAddress(ctx context.Context, domainAddress string, repoAddress str
 			return nil, err
 		}
 
-		if repository, err := git.Open(storage, nil); err != nil {
+		if repositoryInstance, err := git.Open(storage, nil); err != nil {
 			return nil, err
 		} else {
 			backend = &repoGoBackend{
-				fs:         fs,
-				storage:    storage,
-				loader:     &serverLoader{storage: storage},
-				repository: repository,
+				fs:                 fs,
+				storage:            storage,
+				loader:             &serverLoader{storage: storage},
+				repositoryInstance: repositoryInstance,
 			}
 		}
 	}
 
 	return &Repo{
-		repoGoBackend: backend,
-		ctx:           ctx,
-		domainAddress: domainAddress,
-		repoAddress:   repoAddress,
-		path:          path,
+		repoGoBackend:    backend,
+		ctx:              ctx,
+		domainAddress:    domainAddress,
+		repoAddress:      repoAddress,
+		path:             path,
+		repositoryEntity: repositoryEntity,
 	}, nil
 }
 

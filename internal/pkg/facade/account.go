@@ -54,16 +54,26 @@ func (f *Account) GetUser() *entity.User {
 	return f.user
 }
 
+// GetDomain
+func (f *Account) GetDomain() *entity.Domain {
+	return f.user.Domain
+}
+
 // CheckPermission
 //
 // Errors:
 //   - fault.ErrForbidden if the authorized user does not have access to the resource
 func (f *Account) CheckPermission(obj string, act string) error {
+	return f.CheckPermissionIn(appDomain, obj, act)
+}
+
+// CheckPermissionIn
+func (f *Account) CheckPermissionIn(dom string, obj string, act string) error {
 	if ok, err := auth.
 		GetEnforcerInstance().
 		Enforce(
 			fmt.Sprintf("/users/%d", f.user.DomainID),
-			appDomain,
+			dom,
 			obj,
 			act,
 		); err != nil || !ok {
@@ -126,7 +136,8 @@ func (f *Account) CreateRefreshToken() (refreshToken string, err error) {
 
 // GetAccountByPassword
 //
-// If was not able to find the corresponding account, returns `fault.ErrUserInput`.
+// Errors:
+//   - fault.ErrUserInput if was not able to find the corresponding account
 func GetAccountByPassword(ctx context.Context, input dto.SignInInput) (*Account, error) {
 	primaryEmail := new(entity.Email)
 	if err := orm.GetBunInstance().

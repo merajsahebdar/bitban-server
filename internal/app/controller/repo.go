@@ -28,6 +28,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 	"regeet.io/api/internal/cfg"
+	"regeet.io/api/internal/pkg/dto"
 	"regeet.io/api/internal/pkg/facade"
 	"regeet.io/api/internal/pkg/ssh"
 	"regeet.io/api/internal/pkg/util"
@@ -36,22 +37,60 @@ import (
 // Repo
 type Repo struct{}
 
+// hasAccessByHttp
+func (c *Repo) hasAccessByHttp(ctx context.Context, domain string, repo int64) bool {
+	ec := util.MustGetEchoContext(ctx)
+	req := ec.Request()
+	res := ec.Response()
+
+	authHeader := req.Header.Get(echo.HeaderAuthorization)
+	if authHeader == "" {
+		res.Header().Set(echo.HeaderWWWAuthenticate, `Basic realm="Restricted"`)
+		return false
+	}
+
+	if identifier, password, ok := req.BasicAuth(); ok {
+		if account, err := facade.GetAccountByPassword(ctx, dto.SignInInput{
+			Identifier: identifier,
+			Password:   password,
+		}); err != nil {
+			return false
+		} else {
+			if err := account.CheckPermissionIn(
+				domain,
+				fmt.Sprintf("/repositories/%d", repo),
+				"git-serve",
+			); err != nil {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 // InfoRefs
 func (c *Repo) InfoRefs(ctx context.Context) error {
 	ec := util.MustGetEchoContext(ctx)
+	req := ec.Request()
+	res := ec.Response()
+
+	domainAddress := ec.Param("domain")
+	repoAddress := ec.Param("repo")
 
 	var err error
 	var repo *facade.Repo
 
-	req := ec.Request()
-	res := ec.Response()
-
 	if repo, err = facade.GetRepoByAddress(
 		req.Context(),
-		ec.Param("domain"),
-		ec.Param("repo"),
+		domainAddress,
+		repoAddress,
 	); err != nil {
 		return echo.NewHTTPError(http.StatusNotFound)
+	}
+
+	if !c.hasAccessByHttp(ctx, domainAddress, repo.GetID()) {
+		return echo.NewHTTPError(http.StatusForbidden)
 	}
 
 	res.Header().Set("Content-Type", fmt.Sprintf("application/x-%s-advertisement", ec.QueryParam("service")))
@@ -118,6 +157,14 @@ func (c *Repo) ServePack(ctx context.Context) error {
 		// TODO:
 		cfg.Log.Error("failed to initiate a repo facade", zap.Error(err))
 		return nil
+	}
+
+	if isSsh {
+		// TODO: implement ssh-key auth
+	} else {
+		if !c.hasAccessByHttp(ctx, domainAddress, repo.GetID()) {
+			return echo.NewHTTPError(http.StatusForbidden)
+		}
 	}
 
 	if err := repo.ServePack(&facade.ServerPackConfig{
