@@ -34,12 +34,8 @@ type ValidationError struct {
 
 // UserInputError
 type UserInputError struct {
+	error
 	Errors map[string]ValidationError
-}
-
-// Error
-func (e UserInputError) Error() string {
-	return "" // TODO
 }
 
 // AddError
@@ -54,6 +50,7 @@ func (e UserInputError) AddError(namespace string, tag string, message string) {
 // UserInputErrorFrom
 func UserInputErrorFrom(err error) UserInputError {
 	ret := UserInputError{
+		error:  err,
 		Errors: map[string]ValidationError{},
 	}
 
@@ -105,7 +102,7 @@ func IsUserInputError(err error) bool {
 	}
 
 	// Structured
-	if _, ok := err.(*UserInputError); ok {
+	if _, ok := err.(UserInputError); ok {
 		return true
 	}
 
