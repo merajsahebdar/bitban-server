@@ -54,12 +54,12 @@ var Cog struct {
 	Database struct {
 		Host   string `yaml:"host" default:"127.0.0.1"`
 		Port   int    `yaml:"port" default:"5432"`
-		Dbname string `yaml:"dbname"`
-		User   string `yaml:"user"`
-		Pass   string `yaml:"pass"`
+		Dbname string `yaml:"dbname" default:"regeet"`
+		User   string `yaml:"user" default:"regeet"`
+		Pass   string `yaml:"pass" default:"password"`
 	} `yaml:"database"`
 	Redis struct {
-		Url string `yaml:"url"`
+		Url string `yaml:"url" default:"redis://127.0.0.1:6379/0"`
 	}
 	Ssh struct {
 		Key struct {

@@ -24,10 +24,12 @@ import (
 
 var (
 	vars = []string{
+		os.Getenv("HOME") + "/regeet/var",
 		"/var/regeet",
 	}
 
 	etcs = []string{
+		os.Getenv("HOME") + "/regeet/etc",
 		"/etc/regeet",
 	}
 )

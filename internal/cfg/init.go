@@ -92,7 +92,7 @@ func init() {
 
 	var content []byte
 
-	if f, err := GetEtcPath("/cog.yaml"); err != nil {
+	if f, err := GetEtcPath("/cog.yml"); err != nil {
 		if pak, err := pkger.Open("/configs/cog.yml"); err != nil {
 			Log.Fatal(err.Error())
 		} else {
