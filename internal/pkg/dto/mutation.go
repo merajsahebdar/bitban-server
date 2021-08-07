@@ -44,5 +44,5 @@ type SignUpPrimaryEmailInput struct {
 
 // CreateRepositoryInput
 type CreateRepositoryInput struct {
-	Address string `json:"address" validate:"required"`
+	Address string `json:"address" validate:"required,notexistsin=repositories address"`
 }

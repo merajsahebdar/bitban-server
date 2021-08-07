@@ -89,6 +89,22 @@ func GetValidateInstance() *validator.Validate {
 				property := param[1]
 
 				switch datasource {
+				case "repositories":
+					switch property {
+					case "address":
+						address := fl.Field().String()
+						repository := new(entity.Repository)
+						if count, err := orm.
+							GetBunInstance().
+							NewSelect().
+							Model(repository).
+							Where("? = ?", bun.Ident("repository.address"), address).
+							Count(context.Background()); err != nil {
+							panic(err)
+						} else {
+							return count == 0
+						}
+					}
 				case "domains":
 					switch property {
 					case "address":
