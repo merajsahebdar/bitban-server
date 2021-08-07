@@ -31,6 +31,18 @@ type Auth {
   user: User!
 }
 
+# ==========
+# Repository
+# ----------
+
+type Repository {
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  removedAt: DateTime
+  address: String!
+}
+
 # =============
 # Sign Up Input
 # -------------
@@ -60,6 +72,14 @@ input SignInInput {
   password: String!
 }
 
+# =======================
+# Create Repository Input
+# -----------------------
+
+input CreateRepositoryInput {
+  address: String!
+}
+
 # =====
 # Query
 # -----
@@ -87,7 +107,12 @@ type Mutation {
   signIn(input: SignInInput!): Auth!
 
   """
-  Generate a new access token using the current refresh token stored in cookies.
+  Generates a new access token using the current refresh token stored in cookies.
   """
   refreshToken: String!
+
+  """
+  Creates a new git repository using the provided input.
+  """
+  createRepository(input: CreateRepositoryInput!): Repository!
 }

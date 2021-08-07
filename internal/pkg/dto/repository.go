@@ -23,32 +23,30 @@ import (
 	"regeet.io/api/internal/pkg/orm/entity"
 )
 
-// UserNodeType
-const UserNodeType NodeType = "User"
+// RepositoryNodeType
+const RepositoryNodeType NodeType = "Repository"
 
-// User
-type User struct {
+// Repository
+type Repository struct {
 	ID        string    `json:"id"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	RemovedAt null.Time `json:"removedAt"`
-	IsActive  bool      `json:"isActive"`
-	IsBanned  bool      `json:"isBanned"`
+	Address   string    `json:"address"`
 }
 
 // IsNode
-func (User) IsNode() {}
+func (Repository) IsNode() {}
 
-// UserFrom Returns an instance of dto: `User` from its entity.
-func UserFrom(user *entity.User) *User {
-	if user != nil {
-		return &User{
-			ID:        ToNodeIdentifier(UserNodeType, user.DomainID),
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			RemovedAt: user.RemovedAt,
-			IsActive:  user.IsActive,
-			IsBanned:  user.IsBanned,
+// RepositoryFrom Returns an instance of dto: `Repository` from its entity.
+func RepositoryFrom(repository *entity.Repository) *Repository {
+	if repository != nil {
+		return &Repository{
+			ID:        ToNodeIdentifier(RepositoryNodeType, repository.ID),
+			CreatedAt: repository.CreatedAt,
+			UpdatedAt: repository.UpdatedAt,
+			RemovedAt: repository.RemovedAt,
+			Address:   repository.Address,
 		}
 	}
 

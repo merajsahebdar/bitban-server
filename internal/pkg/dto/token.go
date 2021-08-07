@@ -14,25 +14,7 @@
  * limitations under the License.
  */
 
-package resolver
+package dto
 
-import (
-	"go.uber.org/fx"
-	"regeet.io/api/internal/app/controller"
-	"regeet.io/api/internal/pkg/schema"
-	"regeet.io/api/internal/pkg/validate"
-)
-
-// ConfigOpt
-var ConfigOpt = fx.Provide(newConfig)
-
-// newConfig
-func newConfig(accountController *controller.Account, repoController *controller.Repo) schema.Config {
-	return schema.Config{
-		Resolvers: &rootResolver{
-			validate:          validate.GetValidateInstance(),
-			accountController: accountController,
-			repoController:    repoController,
-		},
-	}
-}
+// TokenNodeType
+const TokenNodeType NodeType = "Token"

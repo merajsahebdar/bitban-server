@@ -109,3 +109,21 @@ func (*mutationResolver) RefreshToken(ctx context.Context) (string, error) {
 		), nil
 	}
 }
+
+// CreateRepository
+func (r *mutationResolver) CreateRepository(ctx context.Context, input dto.CreateRepositoryInput) (*dto.Repository, error) {
+	if repository, err := r.
+		repoController.
+		CreateRepository(ctx, input); err != nil {
+		switch {
+		case fault.IsUnauthenticatedError(err):
+			return nil, AuthenticationErrorFrom(err)
+		case fault.IsUserInputError(err):
+			return nil, UserInputErrorFrom(err)
+		default:
+			panic(err)
+		}
+	} else {
+		return dto.RepositoryFrom(repository), nil
+	}
+}

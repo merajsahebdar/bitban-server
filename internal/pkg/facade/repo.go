@@ -291,6 +291,11 @@ func (f *Repo) GetID() int64 {
 	return f.repositoryEntity.ID
 }
 
+// GetEntity
+func (f *Repo) GetEntity() *entity.Repository {
+	return f.repositoryEntity
+}
+
 // CreateRepoByAddress
 func CreateRepoByAddress(ctx context.Context, domainAddress string, repoAddress string) (repo *Repo, err error) {
 	domain := new(entity.Domain)

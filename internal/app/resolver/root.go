@@ -27,6 +27,7 @@ type (
 	rootResolver struct {
 		validate          *validator.Validate
 		accountController *controller.Account
+		repoController    *controller.Repo
 	}
 
 	// queryResolver

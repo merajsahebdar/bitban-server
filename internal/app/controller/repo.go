@@ -30,8 +30,11 @@ import (
 	"regeet.io/api/internal/cfg"
 	"regeet.io/api/internal/pkg/dto"
 	"regeet.io/api/internal/pkg/facade"
+	"regeet.io/api/internal/pkg/fault"
+	"regeet.io/api/internal/pkg/orm/entity"
 	"regeet.io/api/internal/pkg/ssh"
 	"regeet.io/api/internal/pkg/util"
+	"regeet.io/api/internal/pkg/validate"
 )
 
 // Repo
@@ -178,6 +181,31 @@ func (c *Repo) ServePack(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// CreateRepository
+//
+// Errors:
+//   - fault.ErrUnauthenticated if the request is not authorized
+//   - fault.UserInputError if the provided input is invalid
+// ErrorsRef:
+//   - facade.CreateRepoByAddress
+func (c *Repo) CreateRepository(ctx context.Context, input dto.CreateRepositoryInput) (*entity.Repository, error) {
+	if currAccount, err := facade.GetAccountByAccessToken(ctx); err != nil {
+		return nil, fault.ErrUnauthenticated
+	} else {
+		if err := validate.
+			GetValidateInstance().
+			Struct(input); err != nil {
+			return nil, fault.UserInputErrorFrom(err)
+		}
+
+		if repo, err := facade.CreateRepoByAddress(ctx, currAccount.GetDomain().Address, input.Address); err != nil {
+			return nil, err
+		} else {
+			return repo.GetEntity(), nil
+		}
+	}
 }
 
 // RepoOpt
