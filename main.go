@@ -70,7 +70,7 @@ type RunCmd struct {
 func (cmd *RunCmd) Run() error {
 	cfg.Log.Info("starting...", zap.Int("pid", os.Getpid()))
 
-	// Provide app dependincies.
+	// Provide app dependencies.
 	opts := []fx.Option{
 		// Controllers
 		controller.AccountOpt,
