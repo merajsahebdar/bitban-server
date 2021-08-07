@@ -3,37 +3,13 @@
 version: "3.8"
 
 services:
-  # Regeet API
-  api:
-    depends_on:
-      - postgres
-      - redis
-    container_name: regeet-api
-    image: regeet/api:latest
-    build: .
-    environment:
-      PSQL_HOST: postgres
-      PSQL_PORT: 5432
-      PSQL_DBNAME: regeet
-      PSQL_USER: root
-      PSQL_PASS: password
-      REDIS_URL: redis://redis:6379/0
-      SSH_KEY_PASSPHRASE: password
-      JWT_PASSPHRASE: password
-    ports:
-      - 8080:8080
-      - 8022:8022
-    volumes:
-      - type: volume
-        source: api
-        target: /var/lib/regeet
-
   # PostgreSQL
   postgres:
     container_name: regeet-postgres
     image: postgres:13
     environment:
-      POSTGRES_USER: root
+      POSTGRES_DB: regeet
+      POSTGRES_USER: regeet
       POSTGRES_PASSWORD: password
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
@@ -51,10 +27,6 @@ networks:
     name: regeet
 
 volumes:
-  # Regeet API Data
-  api:
-    name: regeet-api
-
   # PostgreSQL Data
   postgres:
     name: regeet-postgres
