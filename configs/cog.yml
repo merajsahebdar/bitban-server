@@ -1,7 +1,7 @@
 # v0.0.*
 app:
-  host: 0.0.0.0
-  port: 3000
+  host: ${APP_HOST}
+  port: ${APP_PORT}
 
 git:
   backend: go
@@ -11,14 +11,14 @@ git:
       defaultBranch: main
 
 database:
-  host: 0.0.0.0
-  port: 5432
-  dbname: regeet
-  user: regeet
-  pass: password
+  host: ${DATABASE_HOST}
+  port: ${DATABASE_PORT}
+  dbname: ${DATABASE_DB}
+  user: ${DATABASE_USER}
+  pass: ${DATABASE_PASS}
 
 redis:
-  url: redis://0.0.0.0:6379/0
+  url: ${REDIS_URL}
 
 security:
   accessTokenExpiresAt: 60
