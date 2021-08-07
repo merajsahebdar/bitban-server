@@ -38,7 +38,7 @@ func CreatePostgresContainer() {
 				"POSTGRES_DB":       "regeet",
 			},
 			WaitingFor: wait.ForSQL("5432", "postgres", func(p nat.Port) string {
-				return fmt.Sprintf("postgres://regeet:password@localhost:%s/regeet?sslmode=disable", p.Port())
+				return fmt.Sprintf("postgres://regeet:password@127.0.0.1:%s/regeet?sslmode=disable", p.Port())
 			}),
 		},
 		Started: true,
