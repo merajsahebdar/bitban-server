@@ -12,6 +12,7 @@
 		}
 	},
 	"runArgs": [
+		"--name=regeet-dev",
 		"--network=regeet",
 		"--cap-add=SYS_PTRACE",
 		"--security-opt",
