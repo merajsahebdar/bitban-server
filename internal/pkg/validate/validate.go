@@ -18,6 +18,7 @@ package validate
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strings"
 	"sync"
@@ -137,7 +138,7 @@ func GetValidateInstance() *validator.Validate {
 					}
 				}
 
-				panic("validator is not registered completely")
+				panic(fmt.Errorf("validator is not registered completely"))
 			})
 
 			v.RegisterTranslation("notexistsin", cfg.EnTrans, func(ut ut.Translator) error {
