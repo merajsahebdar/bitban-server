@@ -9,11 +9,11 @@ MIGRATIONS_DIR:=$(ROOT_DIR)/internal/pkg/orm/migration
 
 # Build Folio Binary
 build: clean pkger orm
-	go build -o regeet
+	go build -o bitban
 
 # Clean-Up
 clean:
-	rm -f regeet
+	rm -f bitban
 
 # Deps
 deps: export GO111MODULE=off

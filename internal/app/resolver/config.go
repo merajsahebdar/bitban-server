@@ -18,9 +18,9 @@ package resolver
 
 import (
 	"go.uber.org/fx"
-	"regeet.io/api/internal/app/controller"
-	"regeet.io/api/internal/pkg/schema"
-	"regeet.io/api/internal/pkg/validate"
+	"bitban.io/server/internal/app/controller"
+	"bitban.io/server/internal/pkg/schema"
+	"bitban.io/server/internal/pkg/validate"
 )
 
 // ConfigOpt

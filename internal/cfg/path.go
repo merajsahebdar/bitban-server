@@ -24,13 +24,13 @@ import (
 
 var (
 	vars = []string{
-		os.Getenv("HOME") + "/regeet/var",
-		"/var/regeet",
+		os.Getenv("HOME") + "/bitban/var",
+		"/var/bitban",
 	}
 
 	etcs = []string{
-		os.Getenv("HOME") + "/regeet/etc",
-		"/etc/regeet",
+		os.Getenv("HOME") + "/bitban/etc",
+		"/etc/bitban",
 	}
 )
 

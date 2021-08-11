@@ -54,8 +54,8 @@ var Cog struct {
 	Database struct {
 		Host   string `yaml:"host" default:"127.0.0.1"`
 		Port   int    `yaml:"port" default:"5432"`
-		Dbname string `yaml:"dbname" default:"regeet"`
-		User   string `yaml:"user" default:"regeet"`
+		Dbname string `yaml:"dbname" default:"bitban"`
+		User   string `yaml:"user" default:"bitban"`
 		Pass   string `yaml:"pass" default:"password"`
 	} `yaml:"database"`
 	Redis struct {

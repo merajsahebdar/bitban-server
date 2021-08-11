@@ -24,14 +24,14 @@ import (
 	gojwt "github.com/dgrijalva/jwt-go"
 	"github.com/uptrace/bun"
 	"github.com/volatiletech/null/v8"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/auth"
-	"regeet.io/api/internal/pkg/dto"
-	"regeet.io/api/internal/pkg/fault"
-	"regeet.io/api/internal/pkg/jwt"
-	"regeet.io/api/internal/pkg/orm"
-	"regeet.io/api/internal/pkg/orm/entity"
-	"regeet.io/api/internal/pkg/util"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/auth"
+	"bitban.io/server/internal/pkg/dto"
+	"bitban.io/server/internal/pkg/fault"
+	"bitban.io/server/internal/pkg/jwt"
+	"bitban.io/server/internal/pkg/orm"
+	"bitban.io/server/internal/pkg/orm/entity"
+	"bitban.io/server/internal/pkg/util"
 )
 
 //

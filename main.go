@@ -22,11 +22,11 @@ import (
 	"github.com/alecthomas/kong"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
-	"regeet.io/api/internal/app/api"
-	"regeet.io/api/internal/app/controller"
-	"regeet.io/api/internal/app/resolver"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/orm"
+	"bitban.io/server/internal/app/api"
+	"bitban.io/server/internal/app/controller"
+	"bitban.io/server/internal/app/resolver"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/orm"
 )
 
 // MigrateUpCmd

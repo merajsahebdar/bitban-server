@@ -19,10 +19,10 @@ package resolver
 import (
 	"context"
 
-	"regeet.io/api/internal/pkg/auth"
-	"regeet.io/api/internal/pkg/dto"
-	"regeet.io/api/internal/pkg/facade"
-	"regeet.io/api/internal/pkg/fault"
+	"bitban.io/server/internal/pkg/auth"
+	"bitban.io/server/internal/pkg/dto"
+	"bitban.io/server/internal/pkg/facade"
+	"bitban.io/server/internal/pkg/fault"
 )
 
 //

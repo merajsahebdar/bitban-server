@@ -40,10 +40,10 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/volatiletech/null/v8"
 	gossh "golang.org/x/crypto/ssh"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/exec"
-	"regeet.io/api/internal/pkg/orm"
-	"regeet.io/api/internal/pkg/orm/entity"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/exec"
+	"bitban.io/server/internal/pkg/orm"
+	"bitban.io/server/internal/pkg/orm/entity"
 )
 
 // Services

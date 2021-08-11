@@ -24,8 +24,8 @@ import (
 
 	gojwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo/v4"
-	"regeet.io/api/internal/pkg/jwt"
-	"regeet.io/api/internal/pkg/util"
+	"bitban.io/server/internal/pkg/jwt"
+	"bitban.io/server/internal/pkg/util"
 )
 
 var (

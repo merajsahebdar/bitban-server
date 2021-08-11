@@ -21,10 +21,10 @@ import (
 	"net"
 
 	"go.uber.org/fx"
-	"regeet.io/api/internal/app/controller"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/facade"
-	"regeet.io/api/internal/pkg/ssh"
+	"bitban.io/server/internal/app/controller"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/facade"
+	"bitban.io/server/internal/pkg/ssh"
 )
 
 // SshOpt

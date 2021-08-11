@@ -12,8 +12,8 @@
 		}
 	},
 	"runArgs": [
-		"--name=regeet-dev",
-		"--network=regeet",
+		"--name=bitban-dev",
+		"--network=bitban",
 		"--cap-add=SYS_PTRACE",
 		"--security-opt",
 		"seccomp=unconfined"

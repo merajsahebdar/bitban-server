@@ -29,8 +29,8 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"go.uber.org/zap"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/util"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/util"
 )
 
 // connectToDatabase Tries to make a connection to the database.

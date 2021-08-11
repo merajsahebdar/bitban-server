@@ -30,11 +30,11 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"regeet.io/api/internal/app/controller"
-	"regeet.io/api/internal/app/resolver"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/schema"
-	"regeet.io/api/internal/pkg/util"
+	"bitban.io/server/internal/app/controller"
+	"bitban.io/server/internal/app/resolver"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/schema"
+	"bitban.io/server/internal/pkg/util"
 )
 
 // echoHandlerFrom

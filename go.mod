@@ -1,4 +1,4 @@
-module regeet.io/api
+module bitban.io/server
 
 go 1.16
 

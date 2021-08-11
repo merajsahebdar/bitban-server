@@ -24,8 +24,8 @@ import (
 	"github.com/casbin/casbin/v2/persist"
 	"github.com/uptrace/bun"
 	"github.com/volatiletech/null/v8"
-	"regeet.io/api/internal/pkg/orm"
-	"regeet.io/api/internal/pkg/orm/entity"
+	"bitban.io/server/internal/pkg/orm"
+	"bitban.io/server/internal/pkg/orm/entity"
 )
 
 // Adapter

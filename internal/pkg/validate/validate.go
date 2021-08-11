@@ -27,9 +27,9 @@ import (
 	validator "github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"github.com/uptrace/bun"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/orm"
-	"regeet.io/api/internal/pkg/orm/entity"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/orm"
+	"bitban.io/server/internal/pkg/orm/entity"
 )
 
 // phoneRegexp

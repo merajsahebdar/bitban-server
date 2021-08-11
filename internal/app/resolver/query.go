@@ -19,8 +19,8 @@ package resolver
 import (
 	"context"
 
-	"regeet.io/api/internal/pkg/dto"
-	"regeet.io/api/internal/pkg/fault"
+	"bitban.io/server/internal/pkg/dto"
+	"bitban.io/server/internal/pkg/fault"
 )
 
 // Node

@@ -19,8 +19,8 @@ package facade
 import (
 	"testing"
 
-	"regeet.io/api/internal/pkg/orm"
-	"regeet.io/api/test"
+	"bitban.io/server/internal/pkg/orm"
+	"bitban.io/server/test"
 )
 
 func TestMain(m *testing.M) {

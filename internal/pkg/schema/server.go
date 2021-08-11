@@ -17,7 +17,7 @@ import (
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	null "github.com/volatiletech/null/v8"
-	"regeet.io/api/internal/pkg/dto"
+	"bitban.io/server/internal/pkg/dto"
 )
 
 // region    ************************** generated!.gotpl **************************
@@ -447,7 +447,7 @@ func (ec *executionContext) field_Mutation_createRepository_args(ctx context.Con
 	var arg0 dto.CreateRepositoryInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNCreateRepositoryInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐCreateRepositoryInput(ctx, tmp)
+		arg0, err = ec.unmarshalNCreateRepositoryInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐCreateRepositoryInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -462,7 +462,7 @@ func (ec *executionContext) field_Mutation_signIn_args(ctx context.Context, rawA
 	var arg0 dto.SignInInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSignInInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignInInput(ctx, tmp)
+		arg0, err = ec.unmarshalNSignInInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignInInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -477,7 +477,7 @@ func (ec *executionContext) field_Mutation_signUp_args(ctx context.Context, rawA
 	var arg0 dto.SignUpInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNSignUpInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpInput(ctx, tmp)
+		arg0, err = ec.unmarshalNSignUpInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -621,7 +621,7 @@ func (ec *executionContext) _Auth_user(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(*dto.User)
 	fc.Result = res
-	return ec.marshalNUser2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐUser(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖbitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_signUp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -663,7 +663,7 @@ func (ec *executionContext) _Mutation_signUp(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*dto.Auth)
 	fc.Result = res
-	return ec.marshalNAuth2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx, field.Selections, res)
+	return ec.marshalNAuth2ᚖbitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -705,7 +705,7 @@ func (ec *executionContext) _Mutation_signIn(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*dto.Auth)
 	fc.Result = res
-	return ec.marshalNAuth2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx, field.Selections, res)
+	return ec.marshalNAuth2ᚖbitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -782,7 +782,7 @@ func (ec *executionContext) _Mutation_createRepository(ctx context.Context, fiel
 	}
 	res := resTmp.(*dto.Repository)
 	fc.Result = res
-	return ec.marshalNRepository2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐRepository(ctx, field.Selections, res)
+	return ec.marshalNRepository2ᚖbitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐRepository(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -821,7 +821,7 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(dto.Node)
 	fc.Result = res
-	return ec.marshalONode2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐNode(ctx, field.Selections, res)
+	return ec.marshalONode2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2463,7 +2463,7 @@ func (ec *executionContext) unmarshalInputSignUpInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("domain"))
-			it.Domain, err = ec.unmarshalNSignUpDomainInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpDomainInput(ctx, v)
+			it.Domain, err = ec.unmarshalNSignUpDomainInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpDomainInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2471,7 +2471,7 @@ func (ec *executionContext) unmarshalInputSignUpInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("primaryEmail"))
-			it.PrimaryEmail, err = ec.unmarshalNSignUpPrimaryEmailInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpPrimaryEmailInput(ctx, v)
+			it.PrimaryEmail, err = ec.unmarshalNSignUpPrimaryEmailInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpPrimaryEmailInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2982,11 +2982,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAuth2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx context.Context, sel ast.SelectionSet, v dto.Auth) graphql.Marshaler {
+func (ec *executionContext) marshalNAuth2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx context.Context, sel ast.SelectionSet, v dto.Auth) graphql.Marshaler {
 	return ec._Auth(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAuth2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx context.Context, sel ast.SelectionSet, v *dto.Auth) graphql.Marshaler {
+func (ec *executionContext) marshalNAuth2ᚖbitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐAuth(ctx context.Context, sel ast.SelectionSet, v *dto.Auth) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3011,7 +3011,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNCreateRepositoryInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐCreateRepositoryInput(ctx context.Context, v interface{}) (dto.CreateRepositoryInput, error) {
+func (ec *executionContext) unmarshalNCreateRepositoryInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐCreateRepositoryInput(ctx context.Context, v interface{}) (dto.CreateRepositoryInput, error) {
 	res, err := ec.unmarshalInputCreateRepositoryInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3046,11 +3046,11 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNRepository2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐRepository(ctx context.Context, sel ast.SelectionSet, v dto.Repository) graphql.Marshaler {
+func (ec *executionContext) marshalNRepository2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐRepository(ctx context.Context, sel ast.SelectionSet, v dto.Repository) graphql.Marshaler {
 	return ec._Repository(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRepository2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐRepository(ctx context.Context, sel ast.SelectionSet, v *dto.Repository) graphql.Marshaler {
+func (ec *executionContext) marshalNRepository2ᚖbitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐRepository(ctx context.Context, sel ast.SelectionSet, v *dto.Repository) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3060,22 +3060,22 @@ func (ec *executionContext) marshalNRepository2ᚖregeetᚗioᚋapiᚋinternal�
 	return ec._Repository(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSignInInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignInInput(ctx context.Context, v interface{}) (dto.SignInInput, error) {
+func (ec *executionContext) unmarshalNSignInInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignInInput(ctx context.Context, v interface{}) (dto.SignInInput, error) {
 	res, err := ec.unmarshalInputSignInInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSignUpDomainInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpDomainInput(ctx context.Context, v interface{}) (dto.SignUpDomainInput, error) {
+func (ec *executionContext) unmarshalNSignUpDomainInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpDomainInput(ctx context.Context, v interface{}) (dto.SignUpDomainInput, error) {
 	res, err := ec.unmarshalInputSignUpDomainInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSignUpInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpInput(ctx context.Context, v interface{}) (dto.SignUpInput, error) {
+func (ec *executionContext) unmarshalNSignUpInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpInput(ctx context.Context, v interface{}) (dto.SignUpInput, error) {
 	res, err := ec.unmarshalInputSignUpInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNSignUpPrimaryEmailInput2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpPrimaryEmailInput(ctx context.Context, v interface{}) (dto.SignUpPrimaryEmailInput, error) {
+func (ec *executionContext) unmarshalNSignUpPrimaryEmailInput2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐSignUpPrimaryEmailInput(ctx context.Context, v interface{}) (dto.SignUpPrimaryEmailInput, error) {
 	res, err := ec.unmarshalInputSignUpPrimaryEmailInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -3095,7 +3095,7 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNUser2ᚖregeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐUser(ctx context.Context, sel ast.SelectionSet, v *dto.User) graphql.Marshaler {
+func (ec *executionContext) marshalNUser2ᚖbitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐUser(ctx context.Context, sel ast.SelectionSet, v *dto.User) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -3367,7 +3367,7 @@ func (ec *executionContext) marshalODateTime2githubᚗcomᚋvolatiletechᚋnull�
 	return scalars.MarshalNullDateTime(v)
 }
 
-func (ec *executionContext) marshalONode2regeetᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐNode(ctx context.Context, sel ast.SelectionSet, v dto.Node) graphql.Marshaler {
+func (ec *executionContext) marshalONode2bitbanᚗioᚋapiᚋinternalᚋpkgᚋdtoᚐNode(ctx context.Context, sel ast.SelectionSet, v dto.Node) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

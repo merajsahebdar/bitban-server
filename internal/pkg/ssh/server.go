@@ -24,7 +24,7 @@ import (
 
 	"go.uber.org/zap"
 	gossh "golang.org/x/crypto/ssh"
-	"regeet.io/api/internal/cfg"
+	"bitban.io/server/internal/cfg"
 )
 
 // HandlerFunc

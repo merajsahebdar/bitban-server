@@ -18,7 +18,7 @@ package resolver
 
 import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"regeet.io/api/internal/pkg/fault"
+	"bitban.io/server/internal/pkg/fault"
 )
 
 // ErrorExtensions

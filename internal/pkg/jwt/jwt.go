@@ -23,7 +23,7 @@ import (
 	"sync"
 
 	gojwt "github.com/dgrijalva/jwt-go"
-	"regeet.io/api/internal/cfg"
+	"bitban.io/server/internal/cfg"
 )
 
 // Jwt

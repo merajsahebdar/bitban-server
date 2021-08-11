@@ -33,12 +33,12 @@ func CreatePostgresContainer() {
 			Image:        "postgres:13",
 			ExposedPorts: []string{"5432:5432"},
 			Env: map[string]string{
-				"POSTGRES_USER":     "regeet",
+				"POSTGRES_USER":     "bitban",
 				"POSTGRES_PASSWORD": "password",
-				"POSTGRES_DB":       "regeet",
+				"POSTGRES_DB":       "bitban",
 			},
 			WaitingFor: wait.ForSQL("5432", "postgres", func(p nat.Port) string {
-				return fmt.Sprintf("postgres://regeet:password@127.0.0.1:%s/regeet?sslmode=disable", p.Port())
+				return fmt.Sprintf("postgres://bitban:password@127.0.0.1:%s/bitban?sslmode=disable", p.Port())
 			}),
 		},
 		Started: true,

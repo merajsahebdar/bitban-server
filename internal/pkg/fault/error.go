@@ -22,7 +22,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/lib/pq"
-	"regeet.io/api/internal/cfg"
+	"bitban.io/server/internal/cfg"
 )
 
 // ValidationError

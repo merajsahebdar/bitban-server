@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/go-redis/redis/v8"
-	"regeet.io/api/internal/cfg"
+	"bitban.io/server/internal/cfg"
 )
 
 // dbLock

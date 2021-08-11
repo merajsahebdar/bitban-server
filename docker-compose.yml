@@ -5,11 +5,11 @@ version: "3.8"
 services:
   # PostgreSQL
   postgres:
-    container_name: regeet-postgres
+    container_name: bitban-postgres
     image: postgres:13
     environment:
-      POSTGRES_DB: regeet
-      POSTGRES_USER: regeet
+      POSTGRES_DB: bitban
+      POSTGRES_USER: bitban
       POSTGRES_PASSWORD: password
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
@@ -19,14 +19,14 @@ services:
 
   # Cache
   cache:
-    container_name: regeet-cache
+    container_name: bitban-cache
     image: redis:5
 
 networks:
   default:
-    name: regeet
+    name: bitban
 
 volumes:
   # PostgreSQL Data
   postgres:
-    name: regeet-postgres
+    name: bitban-postgres

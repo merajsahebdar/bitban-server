@@ -27,14 +27,14 @@ import (
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
-	"regeet.io/api/internal/cfg"
-	"regeet.io/api/internal/pkg/dto"
-	"regeet.io/api/internal/pkg/facade"
-	"regeet.io/api/internal/pkg/fault"
-	"regeet.io/api/internal/pkg/orm/entity"
-	"regeet.io/api/internal/pkg/ssh"
-	"regeet.io/api/internal/pkg/util"
-	"regeet.io/api/internal/pkg/validate"
+	"bitban.io/server/internal/cfg"
+	"bitban.io/server/internal/pkg/dto"
+	"bitban.io/server/internal/pkg/facade"
+	"bitban.io/server/internal/pkg/fault"
+	"bitban.io/server/internal/pkg/orm/entity"
+	"bitban.io/server/internal/pkg/ssh"
+	"bitban.io/server/internal/pkg/util"
+	"bitban.io/server/internal/pkg/validate"
 )
 
 // Repo

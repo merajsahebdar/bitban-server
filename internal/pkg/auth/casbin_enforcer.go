@@ -22,7 +22,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/casbin/casbin/v2/model"
 	"go.uber.org/zap"
-	"regeet.io/api/internal/cfg"
+	"bitban.io/server/internal/cfg"
 )
 
 // enforcerLock

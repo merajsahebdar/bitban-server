@@ -18,8 +18,8 @@ package resolver
 
 import (
 	"github.com/go-playground/validator/v10"
-	"regeet.io/api/internal/app/controller"
-	"regeet.io/api/internal/pkg/schema"
+	"bitban.io/server/internal/app/controller"
+	"bitban.io/server/internal/pkg/schema"
 )
 
 type (
